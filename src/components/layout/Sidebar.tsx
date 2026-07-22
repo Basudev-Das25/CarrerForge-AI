@@ -16,6 +16,7 @@ import {
   Trophy,
   LinkIcon,
   Target,
+  ArrowUpCircle,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -37,6 +38,7 @@ const BOTTOM_ITEMS = [
   { to: "/resume", icon: Sparkles, label: "Resume Generator" },
   { to: "/ats", icon: Target, label: "ATS Intelligence" },
   { to: "/documents", icon: FolderOpen, label: "Document Vault" },
+  { to: "/settings/updates", icon: ArrowUpCircle, label: "Updates" },
   { to: "/settings", icon: Settings, label: "Settings" },
   { to: "/help", icon: HelpCircle, label: "Help" },
 ] as const;

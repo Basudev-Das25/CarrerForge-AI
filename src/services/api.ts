@@ -461,6 +461,66 @@ class ApiClient {
       { method: "POST" },
     );
   }
+
+  // ── Updates ──────────────────────────────────────────────
+
+  async getCurrentVersion() {
+    return this.request<{ version: string; build_number: number; platform: string; architecture: string; published_date: string }>("/updates/version");
+  }
+
+  async getUpdateChannels() {
+    return this.request<{ channels: Array<{ name: string; display_name: string; description: string; base_url: string }> }>("/updates/channels");
+  }
+
+  async getUpdateSettings() {
+    return this.request<Record<string, unknown>>("/updates/settings");
+  }
+
+  async updateSettings(settings: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("/updates/settings", {
+      method: "PUT",
+      body: JSON.stringify(settings),
+    });
+  }
+
+  async resetUpdateSettings() {
+    return this.request<Record<string, unknown>>("/updates/settings/reset", { method: "POST" });
+  }
+
+  async getUpdateHistory() {
+    return this.request<{ updates: Array<Record<string, unknown>>; total: number }>("/updates/history");
+  }
+
+  async getReleaseNotes() {
+    return this.request<{ releases: Array<Record<string, unknown>> }>("/updates/release-notes");
+  }
+
+  async checkForUpdate() {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke("check_for_update");
+    } catch {
+      return { available: false, version: "" };
+    }
+  }
+
+  async downloadUpdate() {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke("download_update");
+    } catch {
+      throw new Error("Download failed");
+    }
+  }
+
+  async installUpdate() {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke("install_update");
+    } catch {
+      throw new Error("Install failed");
+    }
+  }
 }
 
 export const api = new ApiClient();

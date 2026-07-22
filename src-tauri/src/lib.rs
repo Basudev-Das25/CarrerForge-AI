@@ -10,10 +10,16 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState::default())
         .invoke_handler(tauri::generate_handler![
-            commands::greet,
-            commands::get_health,
+            commands::greet::greet,
+            commands::health::get_health,
+            commands::update::check_for_update,
+            commands::update::download_update,
+            commands::update::install_update,
+            commands::update::get_current_version,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CareerForge AI");
