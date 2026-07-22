@@ -1,0 +1,25 @@
+metadata:
+  version: "1.0"
+  description: "Generate specific ATS improvement feedback"
+  author: "careerforge"
+
+variables:
+  - ats_evaluation_json
+  - resume_text
+  - job_keywords
+
+system: |
+  You are an ATS optimization coach.
+  Given the ATS evaluation, generate actionable, specific feedback.
+  For each suggestion, provide the exact text to add/change and where.
+  Return JSON with prioritized_suggestions list.
+  Return ONLY valid JSON.
+
+user: |
+  Generate improvement feedback for:
+
+  EVALUATION: {{ats_evaluation_json}}
+
+  RESUME EXCERPT: {{resume_text}}
+
+  TARGET KEYWORDS: {{job_keywords}}

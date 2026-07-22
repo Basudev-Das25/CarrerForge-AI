@@ -8,7 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
 from app.db.base import engine, Base
-from app.routers import admin, documents, resumes, ai, ats, profile, knowledge
+from app.routers import (
+    admin, documents, resumes, ai, ats, profile, knowledge,
+    ai_orchestrator, jobs, agents_api,
+)
 from app.utils.logger import setup_logging
 
 logger = setup_logging("careerforge")
@@ -58,6 +61,9 @@ app.include_router(resumes.router, prefix="/api/v1/resumes", tags=["resumes"])
 app.include_router(ats.router, prefix="/api/v1/ats", tags=["ats"])
 app.include_router(profile.router, prefix="/api/v1", tags=["profile"])
 app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledge"])
+app.include_router(ai_orchestrator.router, prefix="/api/v1/ai-orchestrator", tags=["ai-orchestrator"])
+app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["jobs"])
+app.include_router(agents_api.router, prefix="/api/v1/agents", tags=["agents"])
 
 
 @app.get("/")

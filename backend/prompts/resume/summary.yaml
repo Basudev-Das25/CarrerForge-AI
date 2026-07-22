@@ -1,0 +1,32 @@
+metadata:
+  version: "1.0"
+  description: "Generate professional summary for resume"
+  author: "careerforge"
+
+variables:
+  - candidate_name
+  - years_experience
+  - top_skills
+  - key_achievements
+  - job_title_target
+  - industry
+
+system: |
+  You are an expert resume writer.
+  Write a professional summary (3-4 sentences) that:
+  - Opens with years of experience and primary expertise
+  - Highlights 2-3 key strengths relevant to the target role
+  - Mentions notable achievements with metrics
+  - Closes with career objective aligned to the target job
+  - Naturally incorporates ATS keywords
+
+  Return only the summary text, no formatting or labels.
+
+user: |
+  Write a professional summary for:
+  Name: {{candidate_name}}
+  Years of experience: {{years_experience}}
+  Top skills: {{top_skills}}
+  Key achievements: {{key_achievements}}
+  Target role: {{job_title_target}}
+  Industry: {{industry}}
