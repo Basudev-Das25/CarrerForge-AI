@@ -377,6 +377,31 @@ class ApiClient {
       body: JSON.stringify(resume),
     });
   }
+
+  async exportResumeMarkdown(resume: Record<string, unknown>) {
+    return this.request<{ markdown: string; format: string }>("/resume/export/markdown", {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async compileResume(resume: Record<string, unknown>, _template: string = "modern") {
+    return this.request<{ compile: Record<string, unknown>; typst: string }>("/resume/compile", {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async validateResumeTypst(resume: Record<string, unknown>, _template: string = "modern") {
+    return this.request<{ valid: boolean; errors: Array<Record<string, unknown>> }>("/resume/validate-typst", {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async getResumeTemplateTheme(name: string) {
+    return this.request<{ template: string; theme: Record<string, unknown> }>(`/resume/themes/${name}`);
+  }
 }
 
 export const api = new ApiClient();

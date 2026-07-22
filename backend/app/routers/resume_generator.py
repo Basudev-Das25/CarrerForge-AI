@@ -206,3 +206,39 @@ async def export_text(resume: dict):
     engine = TemplateEngine()
     text = engine.render_to_text(resume)
     return {"text": text, "format": "text"}
+
+
+@router.post("/export/markdown")
+async def export_markdown(resume: dict):
+    """Export resume as Markdown."""
+    engine = TemplateEngine()
+    md = engine.render_to_markdown(resume)
+    return {"markdown": md, "format": "markdown"}
+
+
+@router.post("/compile")
+async def compile_resume(resume: dict, template: str = "modern"):
+    """Compile resume to PDF via Typst."""
+    engine = TemplateEngine()
+    typst = engine.render_to_typst(resume, template)
+    result = engine.compile_typst(typst)
+    return {"compile": result.to_dict(), "typst": typst}
+
+
+@router.post("/validate-typst")
+async def validate_typst(resume: dict, template: str = "modern"):
+    """Validate the generated Typst source for syntax errors."""
+    engine = TemplateEngine()
+    typst = engine.render_to_typst(resume, template)
+    errors = engine.validate_typst(typst)
+    return {"valid": len(errors) == 0, "errors": errors, "typst": typst}
+
+
+@router.get("/themes/{name}")
+async def get_template_theme(name: str):
+    """Get the theme configuration for a template."""
+    engine = TemplateEngine()
+    theme = engine.get_theme(name)
+    if not theme:
+        raise HTTPException(status_code=404, detail=f"Theme not found for template '{name}'")
+    return {"template": name, "theme": theme}
