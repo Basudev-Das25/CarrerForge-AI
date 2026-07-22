@@ -1,0 +1,62 @@
+{
+  "app": {
+    "name": "CareerForge AI",
+    "version": "0.1.0",
+    "dataDir": "~/.careerforge"
+  },
+  "ai": {
+    "provider": "openai",
+    "model": null,
+    "maxTokens": 4096,
+    "temperature": 0.7,
+    "requestTimeout": 60,
+    "maxRetries": 3,
+    "budgetLimitPerDay": 10.00,
+    "currency": "USD"
+  },
+  "resume": {
+    "maxReflectionIterations": 5,
+    "atsScoreThreshold": 80,
+    "defaultTemplate": "modern-professional",
+    "defaultPaperSize": "A4",
+    "defaultFontSize": 10
+  },
+  "embeddings": {
+    "model": "all-MiniLM-L6-v2",
+    "dimensions": 384,
+    "batchSize": 32,
+    "similarityThreshold": 0.65
+  },
+  "documents": {
+    "maxFileSize": 52428800,
+    "allowedTypes": [".pdf", ".docx", ".txt", ".png", ".jpg", ".jpeg"],
+    "ocrEnabled": true,
+    "autoCategorize": true
+  },
+  "ui": {
+    "theme": "system",
+    "sidebarCollapsed": false,
+    "fontSize": 14,
+    "animationsEnabled": true,
+    "showTooltips": true,
+    "onboardingComplete": false
+  },
+  "security": {
+    "encryptionEnabled": true,
+    "biometricUnlock": false,
+    "autoLockMinutes": 30,
+    "backupEnabled": false,
+    "backupFrequency": "weekly"
+  },
+  "logging": {
+    "level": "INFO",
+    "fileEnabled": true,
+    "consoleEnabled": true,
+    "maxFileSizeMB": 50,
+    "maxBackupFiles": 5
+  },
+  "experimental": {
+    "developerMode": false,
+    "vectorDbDebug": false
+  }
+}

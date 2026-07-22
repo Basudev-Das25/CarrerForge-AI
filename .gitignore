@@ -1,0 +1,148 @@
+# ===========================
+# Dependencies
+# ===========================
+node_modules/
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# ===========================
+# Build Outputs
+# ===========================
+dist/
+build/
+target/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ===========================
+# Tauri
+# ===========================
+src-tauri/target/
+src-tauri/binaries/
+
+# ===========================
+# Environment & Secrets
+# ===========================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# ===========================
+# IDE & Editor
+# ===========================
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ===========================
+# OS
+# ===========================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ===========================
+# Logs
+# ===========================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===========================
+# Python Caches & Artifacts
+# ===========================
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage/
+lcov.info
+
+# ===========================
+# Database Files
+# ===========================
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# ===========================
+# Data & Vector Store
+# ===========================
+data/
+vector_store/
+lancedb/
+
+# ===========================
+# Generated Documents
+# ===========================
+output/
+generated/
+*.generated.pdf
+
+# ===========================
+# Temporary Files
+# ===========================
+*.tmp
+*.bak
+*.cache
+*.orig
+*.rej
+
+# ===========================
+# Distribution Packages
+# ===========================
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# ===========================
+# AI/LLM Cache
+# ===========================
+.cache/
+.model_cache/
+embeddings_cache/
+
+# ===========================
+# Claude Code
+# ===========================
+.claude/settings.local.json
+.playwright-mcp/
+
+# ===========================
+# Remember System (session data)
+# ===========================
+.remember/
+
+# ===========================
+# Pre-commit
+# ===========================
+.pre-commit-cache/
