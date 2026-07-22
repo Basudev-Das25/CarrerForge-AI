@@ -15,6 +15,7 @@ import {
   BookOpen,
   Trophy,
   LinkIcon,
+  Target,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
 
 const BOTTOM_ITEMS = [
   { to: "/resume", icon: Sparkles, label: "Resume Generator" },
+  { to: "/ats", icon: Target, label: "ATS Intelligence" },
   { to: "/documents", icon: FolderOpen, label: "Document Vault" },
   { to: "/settings", icon: Settings, label: "Settings" },
   { to: "/help", icon: HelpCircle, label: "Help" },

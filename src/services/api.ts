@@ -307,7 +307,7 @@ class ApiClient {
 
   // ── ATS ─────────────────────────────────────────────────
 
-  async analyzeResume(resumeId: string, jobDescription?: string) {
+  async analyzeResumeLegacy(resumeId: string, jobDescription?: string) {
     return this.request<{ status: string; message: string }>("/ats/analyze", {
       method: "POST",
       body: JSON.stringify({ resume_id: resumeId, job_description: jobDescription }),
@@ -401,6 +401,65 @@ class ApiClient {
 
   async getResumeTemplateTheme(name: string) {
     return this.request<{ template: string; theme: Record<string, unknown> }>(`/resume/themes/${name}`);
+  }
+
+  // ── ATS Intelligence ──────────────────────────────────
+
+  async analyzeResume(resume: Record<string, unknown>, jobProfile: Record<string, unknown>) {
+    return this.request<{ report: Record<string, unknown> }>("/ats-intelligence/analyze", {
+      method: "POST",
+      body: JSON.stringify({ resume, job_profile: jobProfile }),
+    });
+  }
+
+  async analyzeVersion(versionId: string) {
+    return this.request<{ report: Record<string, unknown>; report_id: string }>(
+      `/ats-intelligence/analyze-version/${versionId}`,
+    );
+  }
+
+  async optimizeResume(resume: Record<string, unknown>, jobProfile: Record<string, unknown>, targetScore: number = 85, maxIterations: number = 3) {
+    return this.request<{
+      resume: Record<string, unknown>;
+      plan: Record<string, unknown>;
+      initial_score: number;
+      final_score: number;
+      improvement: number;
+    }>("/ats-intelligence/optimize", {
+      method: "POST",
+      body: JSON.stringify({ resume, job_profile: jobProfile, target_score: targetScore, max_iterations: maxIterations }),
+    });
+  }
+
+  async compareResumes(resumeA: Record<string, unknown>, resumeB: Record<string, unknown>, jobProfile?: Record<string, unknown>) {
+    return this.request<{ comparison: Record<string, unknown> }>("/ats-intelligence/compare", {
+      method: "POST",
+      body: JSON.stringify({ resume_a: resumeA, resume_b: resumeB, job_profile: jobProfile }),
+    });
+  }
+
+  async compareVersions(v1: string, v2: string) {
+    return this.request<Record<string, unknown>>(
+      `/ats-intelligence/compare-versions?v1=${v1}&v2=${v2}`,
+      { method: "POST" },
+    );
+  }
+
+  async listAtsReports(limit: number = 50) {
+    return this.request<{ total: number; reports: Array<{ id: string; score: number; created_at: string }> }>(
+      `/ats-intelligence/reports?limit=${limit}`,
+    );
+  }
+
+  async getAtsReport(reportId: string) {
+    return this.request<Record<string, unknown>>(`/ats-intelligence/reports/${reportId}`);
+  }
+
+  async exportAtsReport(reportId: string, format: string = "markdown") {
+    return this.request<{ markdown?: string; json?: Record<string, unknown>; format: string }>(
+      `/ats-intelligence/reports/${reportId}/export?format=${format}`,
+      { method: "POST" },
+    );
   }
 }
 

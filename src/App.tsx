@@ -13,6 +13,7 @@ import Publications from "./screens/Publications";
 import Awards from "./screens/Awards";
 import Links from "./screens/Links";
 import ResumeGenerator from "./screens/ResumeGenerator";
+import ATSDashboard from "./screens/ATSDashboard";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="awards" element={<Awards />} />
         <Route path="links" element={<Links />} />
         <Route path="resume" element={<ResumeGenerator />} />
+        <Route path="ats" element={<ATSDashboard />} />
         <Route path="documents" element={<div className="p-8 text-text-secondary">Document Vault — coming soon</div>} />
         <Route path="settings" element={<div className="p-8 text-text-secondary">Settings — coming soon</div>} />
       </Route>

@@ -14,6 +14,7 @@ from app.routers import (
     ai,
     ai_orchestrator,
     ats,
+    ats_intelligence,
     documents,
     jobs,
     knowledge,
@@ -74,6 +75,7 @@ app.include_router(ai_orchestrator.router, prefix="/api/v1/ai-orchestrator", tag
 app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["jobs"])
 app.include_router(agents_api.router, prefix="/api/v1/agents", tags=["agents"])
 app.include_router(resume_generator.router, prefix="/api/v1/resume", tags=["resume"])
+app.include_router(ats_intelligence.router, prefix="/api/v1/ats-intelligence", tags=["ats-intelligence"])
 
 
 @app.get("/")
