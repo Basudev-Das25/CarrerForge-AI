@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
+from app.config.settings import settings
 from app.providers.base import AIProvider, ChatMessage, ChatResponse
 from app.providers.registry import register_provider
-from app.config.settings import settings
 
 
 class OpenRouterProvider(AIProvider):
@@ -29,7 +29,7 @@ class OpenRouterProvider(AIProvider):
     def __init__(self):
         if not settings.openrouter_api_key:
             raise ValueError("OPENROUTER_API_KEY is not set")
-        import openai  # noqa: F401
+        import openai
         self._client = openai.AsyncOpenAI(
             api_key=settings.openrouter_api_key,
             base_url="https://openrouter.ai/api/v1",

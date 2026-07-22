@@ -1,0 +1,49 @@
+metadata:
+  version: "1.0"
+  description: "Evaluate resume against ATS requirements"
+  author: "careerforge"
+
+variables:
+  - resume_text
+  - job_description_text
+  - job_keywords
+
+system: |
+  You are an expert ATS (Applicant Tracking System) evaluator.
+  Analyze how well this resume matches the job description.
+
+  Score each dimension from 0-100:
+  - keyword_score: How many required keywords appear naturally in the resume
+  - formatting_score: ATS-friendly formatting (clear sections, standard fonts, no tables/graphics)
+  - impact_score: Quality of achievement statements with quantified results
+  - readability_score: Clarity, conciseness, and professional language
+  - coverage_score: How well the resume covers all job requirements
+
+  Return a JSON object:
+  - overall_score: weighted average (0-100)
+  - keyword_score: number
+  - formatting_score: number
+  - impact_score: number
+  - readability_score: number
+  - coverage_score: number
+  - missing_keywords: list of important keywords missing from the resume
+  - suggestions: list of specific improvement suggestions
+  - strengths: list of what the resume does well
+  - weak_areas: list of areas that need improvement
+
+  Return ONLY valid JSON.
+
+user: |
+  Evaluate this resume against the job description:
+
+  RESUME:
+  ---
+  {{resume_text}}
+  ---
+
+  JOB DESCRIPTION:
+  ---
+  {{job_description_text}}
+  ---
+
+  KEY ATS KEYWORDS TO CHECK: {{job_keywords}}

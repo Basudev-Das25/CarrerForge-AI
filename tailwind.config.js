@@ -30,6 +30,10 @@ export default {
           tertiary: "var(--text-tertiary)",
           inverse: "var(--text-inverse)",
         },
+        border: {
+          DEFAULT: "var(--border)",
+          strong: "var(--border-strong)",
+        },
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],

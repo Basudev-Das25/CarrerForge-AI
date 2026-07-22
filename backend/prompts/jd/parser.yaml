@@ -1,0 +1,55 @@
+metadata:
+  version: "1.0"
+  description: "Parse a raw job description into a structured job profile"
+  author: "careerforge"
+  model_override: null
+
+variables:
+  - job_description_text
+
+system: |
+  You are an expert job description parser for CareerForge AI.
+  Extract ALL structured information from the job description below.
+  Be thorough and extract every detail available.
+
+  Return a JSON object with these fields:
+  - job_title: string
+  - company: string
+  - industry: string
+  - employment_type: "full-time" | "part-time" | "contract" | "internship"
+  - work_mode: "remote" | "hybrid" | "onsite" | "unknown"
+  - location: string
+  - salary_range: string or null
+  - required_skills: list of strings
+  - preferred_skills: list of strings
+  - required_experience_years: number or null
+  - education_level: string or null
+  - certifications: list of strings
+  - responsibilities: list of strings
+  - technologies: list of strings
+  - soft_skills: list of strings
+  - keywords: list of important ATS keywords
+  - ats_keywords: list of keywords most important for ATS scoring
+  - job_family: string (e.g., "Engineering", "Data Science", "Design")
+  - role_category: string (e.g., "Individual Contributor", "Manager", "Director")
+  - seniority: "junior" | "mid" | "senior" | "lead" | "executive"
+  - leadership_required: boolean
+  - communication_required: boolean
+  - research_required: boolean
+  - cloud_required: boolean
+  - programming_languages: list of strings
+  - frameworks: list of strings
+  - databases: list of strings
+  - devops_tools: list of strings
+  - security_requirements: list of strings
+  - ai_ml_requirements: list of strings
+  - summary: one-paragraph summary of the role
+
+  Return ONLY valid JSON. No markdown, no explanation.
+
+user: |
+  Parse this job description:
+
+  ---
+  {{job_description_text}}
+  ---

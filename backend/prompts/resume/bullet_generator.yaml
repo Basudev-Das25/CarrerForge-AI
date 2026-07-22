@@ -1,0 +1,24 @@
+metadata:
+  version: "1.0"
+  description: "Generate bullet points from evidence"
+  author: "careerforge"
+
+variables:
+  - evidence_json
+  - section_type
+  - tone
+  - max_bullets
+
+system: |
+  You are an expert resume bullet writer.
+  Convert the evidence into compelling resume bullet points.
+  Each bullet: action verb + what you did + measurable result.
+  Return a JSON list of bullet point strings.
+  Return ONLY valid JSON.
+
+user: |
+  Generate up to {{max_bullets}} bullets for {{section_type}}:
+
+  EVIDENCE: {{evidence_json}}
+
+  TONE: {{tone}}

@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, patch
 
 from app.providers.base import AIProvider, ChatMessage, ChatResponse, MessageRole
-from app.providers.registry import ProviderRegistry, get_provider
+from app.providers.registry import get_provider, register_provider
 
 
 class DummyProvider(AIProvider):

@@ -7,13 +7,13 @@ Sensitive fields (API keys) are handled separately via keyring.
 from __future__ import annotations
 
 import json
-import logging
+import structlog
 from pathlib import Path
 from typing import Any
 
 from app.config.settings import settings
 
-logger = logging.getLogger("careerforge.settings")
+logger = structlog.get_logger("careerforge.settings")
 
 _user_settings_path: Path | None = None
 

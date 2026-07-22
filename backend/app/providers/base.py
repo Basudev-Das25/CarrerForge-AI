@@ -1,9 +1,10 @@
 """Base provider interface — the contract all AI providers must implement."""
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, AsyncIterator
+from typing import Any
 
 
 class MessageRole(str, Enum):

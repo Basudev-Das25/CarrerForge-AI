@@ -7,16 +7,34 @@ import {
   Settings,
   HelpCircle,
   Sparkles,
+  GraduationCap,
+  Briefcase,
+  Code,
+  Award,
+  Languages,
+  BookOpen,
+  Trophy,
+  LinkIcon,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/profile", icon: User, label: "Profile" },
-  { to: "/resume", icon: Sparkles, label: "Resume Generator" },
-  { to: "/documents", icon: FolderOpen, label: "Document Vault" },
+  { to: "/education", icon: GraduationCap, label: "Education" },
+  { to: "/experience", icon: Briefcase, label: "Experience" },
+  { to: "/projects", icon: Code, label: "Projects" },
+  { to: "/skills", icon: Award, label: "Skills" },
+  { to: "/certificates", icon: FileText, label: "Certificates" },
+  { to: "/achievements", icon: Trophy, label: "Achievements" },
+  { to: "/languages", icon: Languages, label: "Languages" },
+  { to: "/publications", icon: BookOpen, label: "Publications" },
+  { to: "/awards", icon: Award, label: "Awards" },
+  { to: "/links", icon: LinkIcon, label: "Links" },
 ] as const;
 
 const BOTTOM_ITEMS = [
+  { to: "/resume", icon: Sparkles, label: "Resume Generator" },
+  { to: "/documents", icon: FolderOpen, label: "Document Vault" },
   { to: "/settings", icon: Settings, label: "Settings" },
   { to: "/help", icon: HelpCircle, label: "Help" },
 ] as const;
@@ -35,14 +53,14 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.to === "/"}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              `flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-400"
                   : "text-text-secondary hover:bg-surface-2 hover:text-text-primary"
@@ -56,13 +74,13 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom */}
-      <div className="space-y-1 border-t border-border p-3">
+      <div className="space-y-0.5 border-t border-border p-3">
         {BOTTOM_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              `flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-400"
                   : "text-text-secondary hover:bg-surface-2 hover:text-text-primary"
