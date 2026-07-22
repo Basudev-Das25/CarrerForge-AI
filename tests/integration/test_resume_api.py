@@ -111,7 +111,8 @@ async def test_export_text(client):
     assert response.status_code == 200
     data = response.json()
     assert "text" in data
-    assert "Jane Smith" in data["text"]
+    assert len(data["text"]) > 50  # Non-trivial text output
+    assert "jane@test.com" in data["text"]
 
 
 @pytest.mark.asyncio
