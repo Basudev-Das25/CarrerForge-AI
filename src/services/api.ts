@@ -313,6 +313,70 @@ class ApiClient {
       body: JSON.stringify({ resume_id: resumeId, job_description: jobDescription }),
     });
   }
+
+  // ── Resume Generator ─────────────────────────────────────
+
+  async generateResumeFull(jobDescription: string, template: string = "modern", maxIterations: number = 3) {
+    return this.request<Record<string, unknown>>("/resume/generate", {
+      method: "POST",
+      body: JSON.stringify({ job_description: jobDescription, template, max_iterations: maxIterations }),
+    });
+  }
+
+  async generateResumeBlueprint(jobDescription: string) {
+    return this.request<{ blueprint: Record<string, unknown> }>("/resume/blueprint", {
+      method: "POST",
+      body: JSON.stringify({ job_description: jobDescription }),
+    });
+  }
+
+  async validateResume(resume: Record<string, unknown>, targetKeywords?: string[]) {
+    return this.request<{ validation: Record<string, unknown> }>("/resume/validate", {
+      method: "POST",
+      body: JSON.stringify({ resume, target_keywords: targetKeywords || [] }),
+    });
+  }
+
+  async listResumeTemplates() {
+    return this.request<{ templates: Array<{ name: string; display_name: string; description: string; page_size: string }> }>("/resume/templates");
+  }
+
+  async renderResumeTemplate(template: string, resume: Record<string, unknown>) {
+    return this.request<{ typst: string; template: string }>(`/resume/templates/${template}/render`, {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async listResumeVersions() {
+    return this.request<{ total: number; versions: Array<{ id: string; title: string; template_name?: string; ats_score?: number; created_at: string }> }>("/resume/versions");
+  }
+
+  async getResumeVersion(id: string) {
+    return this.request<Record<string, unknown>>(`/resume/versions/${id}`);
+  }
+
+  async deleteResumeVersion(id: string) {
+    return this.request(`/resume/versions/${id}`, { method: "DELETE" });
+  }
+
+  async compareResumeVersions(v1: string, v2: string) {
+    return this.request<Record<string, unknown>>(`/resume/versions/compare?v1=${v1}&v2=${v2}`, { method: "POST" });
+  }
+
+  async exportResumeTypst(resume: Record<string, unknown>, template: string = "modern") {
+    return this.request<{ typst: string; format: string }>(`/resume/export/typst?template=${template}`, {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async exportResumeText(resume: Record<string, unknown>) {
+    return this.request<{ text: string; format: string }>("/resume/export/text", {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
 }
 
 export const api = new ApiClient();

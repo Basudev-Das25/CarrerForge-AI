@@ -1,0 +1,8 @@
+display_name: "Academic"
+description: "Academic CV template with publications and research emphasis"
+author: "CareerForge AI"
+version: "1.0"
+page_size: "us-letter"
+font_family: "Times New Roman"
+font_size: 11
+supports_color: false

@@ -18,6 +18,7 @@ from app.routers import (
     jobs,
     knowledge,
     profile,
+    resume_generator,
     resumes,
 )
 from app.utils.logger import setup_logging
@@ -72,6 +73,7 @@ app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledg
 app.include_router(ai_orchestrator.router, prefix="/api/v1/ai-orchestrator", tags=["ai-orchestrator"])
 app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["jobs"])
 app.include_router(agents_api.router, prefix="/api/v1/agents", tags=["agents"])
+app.include_router(resume_generator.router, prefix="/api/v1/resume", tags=["resume"])
 
 
 @app.get("/")

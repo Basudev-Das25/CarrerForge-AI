@@ -1,0 +1,8 @@
+display_name: "Software Engineer"
+description: "Technical resume template with skills grid and project emphasis"
+author: "CareerForge AI"
+version: "1.0"
+page_size: "us-letter"
+font_family: "JetBrains Mono"
+font_size: 9
+supports_color: true
