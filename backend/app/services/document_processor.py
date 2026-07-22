@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import hashlib
-import logging
+import structlog
 from pathlib import Path
 
-from app.config.settings import settings
 from app.services.embeddings import store_embedding
 
-logger = logging.getLogger("careerforge.docproc")
+logger = structlog.get_logger("careerforge.docproc")
 
 
 def extract_text_from_pdf(file_path: str) -> str:
@@ -42,9 +41,10 @@ def extract_text_from_pdf(file_path: str) -> str:
 def _ocr_page(page) -> str:
     """Perform OCR on a single PDF page using Tesseract."""
     try:
+        import io
+
         import pytesseract
         from PIL import Image
-        import io
 
         pix = page.get_pixmap(dpi=200)
         img = Image.open(io.BytesIO(pix.tobytes("png")))

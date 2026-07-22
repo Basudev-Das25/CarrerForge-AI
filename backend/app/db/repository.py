@@ -5,10 +5,11 @@ Supports soft delete, search, pagination, and filtering.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Any, Generic, Sequence, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
-from sqlalchemy import select, func, delete, or_
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import Base
@@ -19,7 +20,7 @@ ModelType = TypeVar("ModelType", bound=Base)
 class Repository(Generic[ModelType]):
     """Generic async CRUD repository with soft delete and search."""
 
-    def __init__(self, model: Type[ModelType], session: AsyncSession):
+    def __init__(self, model: type[ModelType], session: AsyncSession):
         self.model = model
         self.session = session
 

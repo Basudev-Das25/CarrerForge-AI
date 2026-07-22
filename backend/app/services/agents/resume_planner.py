@@ -1,7 +1,9 @@
 """Resume Planner Agent — plans resume structure and content allocation."""
 
 from __future__ import annotations
+
 from typing import Any
+
 from app.services.agents.base import Agent
 
 

@@ -1,12 +1,11 @@
 """Application settings loaded from environment and config files."""
 
 import json
-from pathlib import Path
 from functools import lru_cache
+from pathlib import Path
 
-from pydantic_settings import BaseSettings
 from pydantic import Field
-
+from pydantic_settings import BaseSettings
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 CONFIG_DIR = BASE_DIR.parent / "config"

@@ -8,7 +8,9 @@ from typing import Any
 import httpx
 
 from app.services.ai.providers.base import (
-    AIProvider, ChatMessage, ChatResponse, MessageRole,
+    AIProvider,
+    ChatMessage,
+    ChatResponse,
 )
 
 

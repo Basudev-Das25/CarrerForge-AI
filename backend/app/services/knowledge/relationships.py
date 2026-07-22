@@ -6,12 +6,11 @@ aren't captured in the database schema.
 
 from __future__ import annotations
 
-import logging
-from typing import Any
+import structlog
 
-from app.services.knowledge.graph import KnowledgeGraph, KnowledgeEdge
+from app.services.knowledge.graph import KnowledgeEdge, KnowledgeGraph
 
-logger = logging.getLogger("careerforge.knowledge.relationships")
+logger = structlog.get_logger("careerforge.knowledge.relationships")
 
 
 def discover_all_relationships(graph: KnowledgeGraph) -> int:

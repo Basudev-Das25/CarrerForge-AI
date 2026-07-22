@@ -1,7 +1,9 @@
 """Knowledge Retrieval Agent — retrieves relevant profile knowledge."""
 
 from __future__ import annotations
+
 from typing import Any
+
 from app.services.agents.base import Agent
 
 

@@ -6,14 +6,13 @@ on first access with caching. Supports variables, overrides, and validation.
 
 from __future__ import annotations
 
-import re
-import logging
+import structlog
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-logger = logging.getLogger("careerforge.ai.prompts")
+logger = structlog.get_logger("careerforge.ai.prompts")
 
 PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts"
 
@@ -52,7 +51,7 @@ def load_prompt(category: str, name: str, version: str = "latest") -> dict:
         if not prompt_file.exists():
             raise FileNotFoundError(f"Prompt not found: {category}/{name} v{version}")
 
-    with open(prompt_file, "r", encoding="utf-8") as f:
+    with open(prompt_file, encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     _cache[cache_key] = data
@@ -104,7 +103,7 @@ def list_prompts(category: str | None = None) -> list[dict]:
 
     for yaml_file in search_dir.rglob("*.yaml"):
         try:
-            with open(yaml_file, "r", encoding="utf-8") as f:
+            with open(yaml_file, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
             rel = yaml_file.relative_to(PROMPTS_DIR)
             results.append({

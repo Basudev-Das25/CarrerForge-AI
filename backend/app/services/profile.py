@@ -8,16 +8,26 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import or_
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
-    User, Education, Experience, Project, Skill,
-    Certificate, Achievement, Language, Publication,
-    Award, SocialLink, OriginalDocument, ResumeVersion,
+    Achievement,
+    Award,
+    Certificate,
+    Education,
+    Experience,
+    Language,
+    OriginalDocument,
+    Project,
+    Publication,
+    ResumeVersion,
+    Skill,
+    SocialLink,
+    User,
 )
 from app.db.repository import Repository
-from app.utils.errors import ValidationError, DatabaseError
+from app.utils.errors import DatabaseError
 
 
 class ProfileService:

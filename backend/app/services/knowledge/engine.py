@@ -7,27 +7,41 @@ This is the central intelligence layer that powers resume generation and ATS ana
 
 from __future__ import annotations
 
-import logging
-from typing import Any
+import structlog
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import (
-    User, Education, Experience, Project, Skill,
-    Certificate, Achievement, Language, Publication,
-    Award, SocialLink, JobDescription, ResumeVersion, ATSReport,
+    Achievement,
+    ATSReport,
+    Award,
+    Certificate,
+    Education,
+    Experience,
+    JobDescription,
+    Language,
+    Project,
+    Publication,
+    ResumeVersion,
+    Skill,
+    SocialLink,
+    User,
 )
 from app.services.knowledge.graph import KnowledgeGraph, KnowledgeNode
 from app.services.knowledge.relationships import discover_all_relationships
-from app.services.knowledge.scoring import score_all, compute_ats_score
 from app.services.knowledge.retrieval import (
-    RetrievalRequest, RetrievalResponse,
-    hybrid_search, vector_search, keyword_search,
-    get_relevant_entities, get_knowledge_summary,
+    RetrievalRequest,
+    RetrievalResponse,
+    get_knowledge_summary,
+    get_relevant_entities,
+    hybrid_search,
+    keyword_search,
+    vector_search,
 )
+from app.services.knowledge.scoring import score_all
 
-logger = logging.getLogger("careerforge.knowledge.engine")
+logger = structlog.get_logger("careerforge.knowledge.engine")
 
 
 class KnowledgeEngine:
@@ -468,7 +482,7 @@ class KnowledgeEngine:
 
     async def regenerate_all_embeddings(self) -> dict:
         """Delete and regenerate all embeddings."""
-        from app.db.lance import delete_embedding, count_embeddings
+        from app.db.lance import delete_embedding
 
         # Delete existing embeddings
         for node in self.graph._nodes.values():

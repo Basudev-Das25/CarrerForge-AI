@@ -7,8 +7,8 @@ and database model conversion.
 from __future__ import annotations
 
 from datetime import datetime
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # ── Base ────────────────────────────────────────────────────
 

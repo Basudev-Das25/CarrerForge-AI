@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
+from app.config.settings import settings
 from app.providers.base import AIProvider, ChatMessage, ChatResponse
 from app.providers.registry import register_provider
-from app.config.settings import settings
 
 
 class AnthropicProvider(AIProvider):
@@ -27,7 +27,7 @@ class AnthropicProvider(AIProvider):
     def __init__(self):
         if not settings.anthropic_api_key:
             raise ValueError("ANTHROPIC_API_KEY is not set")
-        import anthropic  # noqa: F401
+        import anthropic
         self._client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
 
     async def chat(

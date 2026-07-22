@@ -6,16 +6,15 @@ duplicate detection, and collection management.
 
 from __future__ import annotations
 
-import logging
+import structlog
 from typing import Any
-from datetime import datetime
 
-from sqlalchemy import select, func, or_, delete
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import JobDescription
 
-logger = logging.getLogger("careerforge.job.repository")
+logger = structlog.get_logger("careerforge.job.repository")
 
 
 class JobRepository:

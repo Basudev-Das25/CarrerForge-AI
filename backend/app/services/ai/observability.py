@@ -7,11 +7,12 @@ from __future__ import annotations
 
 import time
 import uuid
-import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("careerforge.ai.observability")
+import structlog
+
+logger = structlog.get_logger("careerforge.ai.observability")
 
 
 @dataclass

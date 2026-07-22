@@ -7,7 +7,7 @@ retry(), and health() methods.
 from __future__ import annotations
 
 import json
-import logging
+import structlog
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -16,7 +16,7 @@ from typing import Any
 from app.services.ai.orchestrator import orchestrator
 from app.services.ai.providers.base import ChatMessage, MessageRole
 
-logger = logging.getLogger("careerforge.agents")
+logger = structlog.get_logger("careerforge.agents")
 
 
 @dataclass
@@ -53,7 +53,7 @@ class Agent(ABC):
     def __init__(self, name: str, max_retries: int = 2):
         self.name = name
         self.max_retries = max_retries
-        self.logger = logging.getLogger(f"careerforge.agents.{name}")
+        self.logger = structlog.get_logger(f"careerforge.agents.{name}")
 
     @abstractmethod
     def system_prompt(self) -> str:

@@ -1,7 +1,9 @@
 """Job Parser Agent — parses raw job descriptions into structured profiles."""
 
 from __future__ import annotations
+
 from typing import Any
+
 from app.services.agents.base import Agent
 
 

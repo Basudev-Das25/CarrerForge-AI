@@ -4,21 +4,18 @@ Supports drag-and-drop, multi-file upload, OCR status tracking,
 semantic search, and metadata management.
 """
 
-import shutil
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, File, HTTPException, Query
-from sqlalchemy import select, func
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends
 
 from app.config.settings import settings
-from app.db.base import async_session, get_db
+from app.db.base import get_db
 from app.db.models import OriginalDocument
 from app.db.repository import Repository
-from app.services.document_processor import process_document, categorize_document
 from app.models.schemas import DocumentResponse
+from app.services.document_processor import process_document
 
 router = APIRouter()
 
@@ -68,7 +65,7 @@ async def upload_document(
     # Process document (text extraction, categorization, embedding)
     try:
         result = process_document(str(file_path), DEFAULT_USER_ID)
-    except Exception as e:
+    except Exception:
         # Still save the doc even if processing fails
         result = {"text": "", "hash": "", "category": category or "other", "embedding_ids": []}
 

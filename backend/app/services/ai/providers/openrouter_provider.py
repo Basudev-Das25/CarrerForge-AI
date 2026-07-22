@@ -6,7 +6,9 @@ import time
 from typing import Any
 
 from app.services.ai.providers.base import (
-    AIProvider, ChatMessage, ChatResponse, MessageRole,
+    AIProvider,
+    ChatMessage,
+    ChatResponse,
 )
 
 

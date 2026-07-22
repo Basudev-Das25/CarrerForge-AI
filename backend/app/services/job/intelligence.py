@@ -7,13 +7,13 @@ job descriptions, enabling intelligent matching and resume tailoring.
 from __future__ import annotations
 
 import json
-import logging
+import structlog
 from typing import Any
 
 from app.services.ai.orchestrator import orchestrator
 from app.services.ai.providers.base import ChatMessage, MessageRole
 
-logger = logging.getLogger("careerforge.job.intelligence")
+logger = structlog.get_logger("careerforge.job.intelligence")
 
 
 class JobProfile:

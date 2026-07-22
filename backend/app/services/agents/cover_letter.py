@@ -1,7 +1,9 @@
 """Cover Letter Agent — generates tailored cover letters."""
 
 from __future__ import annotations
+
 from typing import Any
+
 from app.services.agents.base import Agent
 
 

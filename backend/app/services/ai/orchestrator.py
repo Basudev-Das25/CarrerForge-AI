@@ -10,18 +10,23 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-import logging
+import structlog
 import time
-from typing import Any, AsyncIterator
+from collections.abc import AsyncIterator
+from typing import Any
 
 from app.config.settings import settings
-from app.services.ai.providers.base import (
-    AIProvider, ChatMessage, ChatResponse, MessageRole, ProviderHealth,
-)
-from app.services.ai.observability import AIObservation, estimate_cost, tracker
+from app.services.ai.observability import AIObservation, tracker
 from app.services.ai.prompt_registry import render_prompt
+from app.services.ai.providers.base import (
+    AIProvider,
+    ChatMessage,
+    ChatResponse,
+    MessageRole,
+    ProviderHealth,
+)
 
-logger = logging.getLogger("careerforge.ai.orchestrator")
+logger = structlog.get_logger("careerforge.ai.orchestrator")
 
 # ── Response Cache ──────────────────────────────────────────
 
@@ -176,7 +181,7 @@ class AIOrchestrator:
 
                         return response
 
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     last_error = f"Timeout after {self._timeout}s"
                     logger.warning("orchestrator.timeout", provider=prov_name, retry=retry)
                 except Exception as e:

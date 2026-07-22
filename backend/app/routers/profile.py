@@ -7,21 +7,42 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import get_db
-from app.services.profile import ProfileService
 from app.models.schemas import (
-    UserCreate, UserUpdate, UserResponse,
-    EducationCreate, EducationUpdate, EducationResponse,
-    ExperienceCreate, ExperienceUpdate, ExperienceResponse,
-    ProjectCreate, ProjectUpdate, ProjectResponse,
-    SkillCreate, SkillUpdate, SkillResponse,
-    CertificateCreate, CertificateUpdate, CertificateResponse,
-    AchievementCreate, AchievementUpdate, AchievementResponse,
-    LanguageCreate, LanguageUpdate, LanguageResponse,
-    PublicationCreate, PublicationUpdate, PublicationResponse,
-    AwardCreate, AwardUpdate, AwardResponse,
-    SocialLinkCreate, SocialLinkUpdate, SocialLinkResponse,
+    AchievementCreate,
+    AchievementResponse,
+    AchievementUpdate,
+    AwardCreate,
+    AwardResponse,
+    AwardUpdate,
+    CertificateCreate,
+    CertificateResponse,
+    CertificateUpdate,
     DashboardData,
+    EducationCreate,
+    EducationResponse,
+    EducationUpdate,
+    ExperienceCreate,
+    ExperienceResponse,
+    ExperienceUpdate,
+    LanguageCreate,
+    LanguageResponse,
+    LanguageUpdate,
+    ProjectCreate,
+    ProjectResponse,
+    ProjectUpdate,
+    PublicationCreate,
+    PublicationResponse,
+    PublicationUpdate,
+    SkillCreate,
+    SkillResponse,
+    SkillUpdate,
+    SocialLinkCreate,
+    SocialLinkResponse,
+    SocialLinkUpdate,
+    UserResponse,
+    UserUpdate,
 )
+from app.services.profile import ProfileService
 
 router = APIRouter()
 

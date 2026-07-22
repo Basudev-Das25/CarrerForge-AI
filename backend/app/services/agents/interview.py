@@ -1,7 +1,9 @@
 """Interview Agent — prepares interview questions and talking points."""
 
 from __future__ import annotations
+
 from typing import Any
+
 from app.services.agents.base import Agent
 
 

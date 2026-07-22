@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import httpx
 
+from app.config.settings import settings
 from app.providers.base import AIProvider, ChatMessage, ChatResponse
 from app.providers.registry import register_provider
-from app.config.settings import settings
 
 
 class OllamaProvider(AIProvider):

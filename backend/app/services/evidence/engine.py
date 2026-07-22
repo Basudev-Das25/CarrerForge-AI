@@ -7,14 +7,14 @@ The Resume Generator consumes ONLY evidence bundles — never the database direc
 
 from __future__ import annotations
 
-import logging
+import structlog
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.services.knowledge.engine import KnowledgeEngine
 from app.services.job.intelligence import JobProfile
+from app.services.knowledge.engine import KnowledgeEngine
 
-logger = logging.getLogger("careerforge.evidence")
+logger = structlog.get_logger("careerforge.evidence")
 
 
 @dataclass

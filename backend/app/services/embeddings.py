@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import structlog
 import uuid
-import logging
 
-from app.db.lance import upsert_embedding, search_similar, delete_embedding, count_embeddings
 from app.config.settings import settings
+from app.db.lance import count_embeddings, delete_embedding, search_similar, upsert_embedding
 
-logger = logging.getLogger("careerforge.embeddings")
+logger = structlog.get_logger("careerforge.embeddings")
 
 # Lazy-loaded sentence transformer model
 _model = None

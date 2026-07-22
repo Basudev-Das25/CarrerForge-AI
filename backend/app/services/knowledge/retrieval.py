@@ -7,14 +7,14 @@ expansion for comprehensive results.
 
 from __future__ import annotations
 
-import logging
+import structlog
 import re
 from dataclasses import dataclass, field
 from typing import Any
 
 from app.services.knowledge.graph import KnowledgeGraph, KnowledgeNode
 
-logger = logging.getLogger("careerforge.knowledge.retrieval")
+logger = structlog.get_logger("careerforge.knowledge.retrieval")
 
 
 @dataclass

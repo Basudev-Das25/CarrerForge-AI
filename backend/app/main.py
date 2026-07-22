@@ -7,10 +7,18 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
-from app.db.base import engine, Base
+from app.db.base import Base, engine
 from app.routers import (
-    admin, documents, resumes, ai, ats, profile, knowledge,
-    ai_orchestrator, jobs, agents_api,
+    admin,
+    agents_api,
+    ai,
+    ai_orchestrator,
+    ats,
+    documents,
+    jobs,
+    knowledge,
+    profile,
+    resumes,
 )
 from app.utils.logger import setup_logging
 

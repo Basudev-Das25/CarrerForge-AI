@@ -6,13 +6,11 @@ based on keyword analysis, embedding similarity, and relationship traversal.
 
 from __future__ import annotations
 
-import re
-import logging
-from typing import Any
+import structlog
 
 from app.services.knowledge.graph import KnowledgeGraph, KnowledgeNode
 
-logger = logging.getLogger("careerforge.knowledge.scoring")
+logger = structlog.get_logger("careerforge.knowledge.scoring")
 
 # ── Scoring Dimensions & Keyword Maps ───────────────────────
 

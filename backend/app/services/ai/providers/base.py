@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import time
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import AsyncIterator, Any
+from typing import Any
 
 
 class MessageRole(str, Enum):

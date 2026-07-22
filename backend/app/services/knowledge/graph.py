@@ -6,11 +6,11 @@ relationships, enabling semantic traversal and relationship-aware retrieval.
 
 from __future__ import annotations
 
-import logging
+import structlog
 from dataclasses import dataclass, field
 from typing import Any
 
-logger = logging.getLogger("careerforge.knowledge.graph")
+logger = structlog.get_logger("careerforge.knowledge.graph")
 
 
 # ── Data Classes ────────────────────────────────────────────

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
-from app.providers.base import AIProvider, ChatMessage, ChatResponse, MessageRole
-from app.providers.registry import register_provider
 from app.config.settings import settings
+from app.providers.base import AIProvider, ChatMessage, ChatResponse
+from app.providers.registry import register_provider
 
 
 class OpenAIProvider(AIProvider):
@@ -24,7 +24,7 @@ class OpenAIProvider(AIProvider):
         if not settings.openai_api_key:
             raise ValueError("OPENAI_API_KEY is not set")
         # Lazy import to avoid import errors when the key isn't configured
-        import openai  # noqa: F401
+        import openai
         self._client = openai.AsyncOpenAI(api_key=settings.openai_api_key)
 
     async def chat(
