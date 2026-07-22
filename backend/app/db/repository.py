@@ -6,7 +6,7 @@ Supports soft delete, search, pagination, and filtering.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Generic, TypeVar
 
 from sqlalchemy import delete, func, or_, select
@@ -149,7 +149,7 @@ class Repository(Generic[ModelType]):
         instance = await self.get(id)
         if instance is None:
             return False
-        instance.deleted_at = datetime.utcnow()
+        instance.deleted_at = datetime.now(timezone.utc).replace(tzinfo=None)
         await self.session.flush()
         return True
 

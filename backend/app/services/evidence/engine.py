@@ -7,9 +7,10 @@ The Resume Generator consumes ONLY evidence bundles — never the database direc
 
 from __future__ import annotations
 
-import structlog
 from dataclasses import dataclass, field
 from typing import Any
+
+import structlog
 
 from app.services.job.intelligence import JobProfile
 from app.services.knowledge.engine import KnowledgeEngine

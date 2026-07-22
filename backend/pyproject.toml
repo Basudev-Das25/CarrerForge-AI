@@ -24,6 +24,15 @@ select = [
 ignore = [
     "E501",   # line too long (handled by formatter)
     "S101",   # assert used (fine in tests)
+    "B008",   # function-call-in-default-argument (FastAPI Depends patterns)
+    "TCH001", # typing-only-first-party-import
+    "TCH002", # typing-only-third-party-import
+    "TCH003", # typing-only-standard-library-import
+    "SIM105", # suppressible-exception (contextlib.suppress not always clearer)
+    "B904",   # raise-without-from-inside-except (not always needed)
+    "PTH123", # builtin-open (open() is fine)
+    "UP042",  # replace-str-enum (not all enums need StrEnum)
+    "A002",   # builtin-argument-shadowing (common in Pydantic models)
 ]
 
 [tool.ruff.lint.per-file-ignores]

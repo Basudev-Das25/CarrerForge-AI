@@ -6,9 +6,9 @@ duplicate detection, and collection management.
 
 from __future__ import annotations
 
-import structlog
 from typing import Any
 
+import structlog
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -7,8 +7,9 @@ job descriptions, enabling intelligent matching and resume tailoring.
 from __future__ import annotations
 
 import json
-import structlog
 from typing import Any
+
+import structlog
 
 from app.services.ai.orchestrator import orchestrator
 from app.services.ai.providers.base import ChatMessage, MessageRole
@@ -206,7 +207,7 @@ class JobIntelligence:
         # Remove markdown code blocks
         if text.startswith("```"):
             lines = text.split("\n")
-            lines = [l for l in lines if not l.strip().startswith("```")]
+            lines = [line for line in lines if not line.strip().startswith("```")]
             text = "\n".join(lines)
 
         # Try to find JSON in the response

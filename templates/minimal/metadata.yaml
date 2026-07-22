@@ -1,0 +1,8 @@
+display_name: "Minimal Clean"
+description: "Minimalist template focusing on content with minimal decoration"
+author: "CareerForge AI"
+version: "1.0"
+page_size: "us-letter"
+font_family: "Helvetica"
+font_size: 10
+supports_color: false
