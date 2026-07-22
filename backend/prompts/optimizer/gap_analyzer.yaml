@@ -1,0 +1,21 @@
+metadata:
+  version: "1.0"
+  description: "Analyze gaps between resume and job requirements"
+  author: "careerforge"
+
+variables:
+  - resume_text
+  - job_profile_json
+
+system: |
+  You are a gap analysis expert. Compare this resume against the job requirements.
+  Identify skill gaps, experience gaps, education gaps, and keyword gaps.
+  Return JSON with: skill_gaps, experience_gaps, education_gaps, keyword_gaps, overall_gap_score.
+  Return ONLY valid JSON.
+
+user: |
+  Resume:
+  {{resume_text}}
+
+  Job Profile:
+  {{job_profile_json}}
