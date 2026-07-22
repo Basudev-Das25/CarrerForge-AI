@@ -10,10 +10,11 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
-import structlog
 import time
 from collections.abc import AsyncIterator
 from typing import Any
+
+import structlog
 
 from app.config.settings import settings
 from app.services.ai.observability import AIObservation, tracker
@@ -153,7 +154,7 @@ class AIOrchestrator:
         last_error = None
         providers_to_try = [provider_name] + [p for p in self._fallback_order if p != provider_name]
 
-        for attempt, prov_name in enumerate(providers_to_try):
+        for _attempt, prov_name in enumerate(providers_to_try):
             if prov_name not in self._providers:
                 continue
 

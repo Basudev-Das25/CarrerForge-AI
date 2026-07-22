@@ -1,7 +1,7 @@
 """SQLAlchemy ORM models for CareerForge AI."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     JSON,
@@ -24,7 +24,7 @@ def gen_uuid() -> str:
 
 
 def utcnow():
-    return datetime.utcnow()
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 # ── User ────────────────────────────────────────────────────

@@ -75,10 +75,18 @@ def list_providers() -> list[dict]:
     _auto_register()
     result = []
     for name, cls in _registry.items():
-        instance = cls()
-        result.append({
-            "name": instance.name,
-            "id": name,
-            "models": instance.supported_models,
-        })
+        try:
+            instance = cls()
+            result.append({
+                "name": instance.name,
+                "id": name,
+                "models": instance.supported_models,
+            })
+        except Exception:
+            # Provider may need API key — still list it
+            result.append({
+                "name": name,
+                "id": name,
+                "models": [],
+            })
     return result

@@ -1,23 +1,67 @@
-"""Shared test fixtures for CareerForge AI backend."""
+"""Shared test fixtures for CareerForge AI backend.
 
+Automatically uses an in-memory SQLite database for isolation.
+No configuration required — just run pytest.
+"""
+
+import os
 import pytest
 import asyncio
 from httpx import AsyncClient, ASGITransport
 
+# ── Critical: Set test database BEFORE any app imports ──────
+# This must happen at module import time, before any module
+# that imports `engine` from app.db.base executes.
+os.environ.setdefault("TEST_DATABASE_URL", "sqlite+aiosqlite://")
+
+# Now safe to import app
 from app.main import app
+from app.db.base import engine, Base, _get_database_url
+from app.config.settings import settings
 
 
 @pytest.fixture(scope="session")
 def event_loop():
-    """Create a single event loop for all tests."""
+    """Create a single event loop for the entire session."""
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
 
 
+@pytest.fixture(scope="session", autouse=True)
+async def setup_database():
+    """Create all tables once per test session.
+
+    Uses the in-memory SQLite database set via TEST_DATABASE_URL.
+    Tables are created before any test and dropped after all tests.
+    """
+    # Verify we're using the test database
+    db_url = _get_database_url()
+    assert "sqlite+aiosqlite://" in db_url, f"Using non-test database: {db_url}"
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    yield
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+    await engine.dispose()
+
+
+@pytest.fixture(autouse=True)
+async def cleanup_db():
+    """Clean data between tests — delete all rows from every table."""
+    yield
+    async with engine.begin() as conn:
+        for table in reversed(Base.metadata.sorted_tables):
+            await conn.execute(table.delete())
+
+
 @pytest.fixture
 async def client():
-    """Async HTTP test client."""
+    """Async HTTP test client with in-memory database isolation."""
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac

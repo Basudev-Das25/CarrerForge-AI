@@ -75,12 +75,11 @@ def _discover_experience_project(graph: KnowledgeGraph) -> int:
     """Experience involved Project — inferred from shared companies, tech, dates."""
     count = 0
     for exp in graph.get_nodes_by_type("experience"):
-        exp_company = str(exp.properties.get("company", "")).lower()
-        exp_skills = set(str(s).lower() for s in exp.properties.get("skills_used", []))
+        exp_skills = {str(s).lower() for s in exp.properties.get("skills_used", [])}
 
         for project in graph.get_nodes_by_type("project"):
-            proj_skills = set(str(s).lower() for s in project.properties.get("tech_stack", []))
-            proj_skills.update(str(s).lower() for s in project.properties.get("skills_used", []))
+            proj_skills = {str(s).lower() for s in project.properties.get("tech_stack", [])}
+            proj_skills.update({str(s).lower() for s in project.properties.get("skills_used", [])})
 
             # Check for shared skills or company match
             overlap = exp_skills & proj_skills
@@ -127,7 +126,6 @@ def _discover_publication_skill(graph: KnowledgeGraph) -> int:
     count = 0
     for pub in graph.get_nodes_by_type("publication"):
         pub_text = str(pub.properties.get("title", "")).lower() + " " + str(pub.properties.get("description", "")).lower()
-        pub_venue = str(pub.properties.get("venue", "")).lower()
 
         for skill in graph.get_nodes_by_type("skill"):
             skill_name = skill.properties.get("name", "").lower()
@@ -146,11 +144,9 @@ def _discover_award_achievement(graph: KnowledgeGraph) -> int:
     count = 0
     for award in graph.get_nodes_by_type("award"):
         award_org = str(award.properties.get("issuer", "")).lower()
-        award_cat = str(award.properties.get("category", ""))
 
         for ach in graph.get_nodes_by_type("achievement"):
             ach_org = str(ach.properties.get("organization", "")).lower()
-            ach_cat = str(ach.properties.get("category", ""))
             if award_org and award_org == ach_org:
                 _add_edge(graph, KnowledgeEdge(
                     source_type="award", source_id=award.entity_id,
@@ -166,8 +162,8 @@ def _discover_jd_skill(graph: KnowledgeGraph) -> int:
     count = 0
     for jd in graph.get_nodes_by_type("job_description"):
         jd_text = str(jd.properties.get("raw_text", "")).lower()
-        jd_keywords = set(str(k).lower() for k in jd.properties.get("keywords", []))
-        jd_requirements = set(str(r).lower() for r in jd.properties.get("requirements", []))
+        jd_keywords = {str(k).lower() for k in jd.properties.get("keywords", [])}
+        jd_requirements = {str(r).lower() for r in jd.properties.get("requirements", [])}
 
         for skill in graph.get_nodes_by_type("skill"):
             skill_name = skill.properties.get("name", "").lower()

@@ -8,7 +8,6 @@ This is the central intelligence layer that powers resume generation and ATS ana
 from __future__ import annotations
 
 import structlog
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -68,7 +67,7 @@ class KnowledgeEngine:
         score_all(self.graph)
 
         stats = self.graph.get_stats()
-        logger.info("engine.build.complete", **stats, edges=edge_count)
+        logger.info("engine.build.complete", node_count=stats["nodes"], edge_count=edge_count)
         return self.graph
 
     async def _load_entities(self) -> None:
@@ -489,7 +488,7 @@ class KnowledgeEngine:
             if node.embedding_id:
                 try:
                     delete_embedding(node.embedding_id)
-                except Exception:
+                except Exception:  # noqa: S110 — idempotent cleanup
                     pass
                 node.embedding_id = ""
 

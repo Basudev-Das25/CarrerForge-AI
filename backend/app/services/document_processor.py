@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import hashlib
-import structlog
 from pathlib import Path
+
+import structlog
 
 from app.services.embeddings import store_embedding
 
@@ -118,7 +119,7 @@ def process_document(file_path: str, user_id: str) -> dict:
     embedding_ids = []
     if text.strip():
         chunks = _chunk_text(text)
-        for i, chunk in enumerate(chunks):
+        for chunk in chunks:
             if len(chunk.strip()) > 20:  # Skip tiny chunks
                 eid = store_embedding(
                     entity_type="document",

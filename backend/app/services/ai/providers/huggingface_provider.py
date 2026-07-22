@@ -7,7 +7,13 @@ from typing import Any
 
 import httpx
 
-from app.services.ai.providers.base import AIProvider, ChatMessage, ChatResponse, MessageRole
+from app.services.ai.providers.base import (
+    AIProvider,
+    ChatMessage,
+    ChatResponse,
+    EmbeddingResponse,
+    MessageRole,
+)
 
 
 class HuggingFaceProvider(AIProvider):
@@ -81,7 +87,6 @@ class HuggingFaceProvider(AIProvider):
         return True
 
     async def generate_embedding(self, text: str, model: str | None = None) -> EmbeddingResponse:
-        from app.services.ai.providers.base import EmbeddingResponse
         model = model or "sentence-transformers/all-MiniLM-L6-v2"
 
         async with httpx.AsyncClient(timeout=30.0) as client:

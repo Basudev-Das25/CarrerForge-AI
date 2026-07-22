@@ -58,8 +58,8 @@ def upsert_embedding(
     # Delete existing record with same ID if present
     try:
         table.delete(f'id = "{embedding_id}"')
-    except Exception:
-        pass  # Table may be empty or ID doesn't exist
+    except Exception:  # noqa: S110 — idempotent delete, table may be empty
+        pass
 
     table.add(
         [{
