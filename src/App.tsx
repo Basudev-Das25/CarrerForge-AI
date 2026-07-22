@@ -18,6 +18,7 @@ import Links from "./screens/Links";
 import ResumeGenerator from "./screens/ResumeGenerator";
 import ATSDashboard from "./screens/ATSDashboard";
 import UpdateSettings from "./screens/UpdateSettings";
+import Feedback from "./screens/Feedback";
 
 function AboutPage() {
   return (
@@ -88,7 +89,7 @@ function App() {
           <Route path="documents" element={<div className="p-8 text-text-secondary">Document Vault — coming soon</div>} />
           <Route path="settings/updates" element={<UpdateSettings />} />
           <Route path="settings" element={<div className="p-8 text-text-secondary">Settings — coming soon</div>} />
-          <Route path="help" element={<div className="p-8 text-text-secondary">Help — coming soon</div>} />
+          <Route path="help" element={<Feedback />} />
           <Route path="about" element={<AboutPage />} />
         </Route>
       </Routes>
