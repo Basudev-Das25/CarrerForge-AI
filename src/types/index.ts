@@ -16,6 +16,7 @@ export interface User {
   portfolio_url?: string;
   summary?: string;
   avatar_path?: string;
+  version: number;
   created_at: string;
   updated_at: string;
 }
@@ -56,15 +57,30 @@ export interface Experience {
 
 // ── Projects ────────────────────────────────────────────────
 
+export type ProjectDifficulty = "beginner" | "intermediate" | "advanced" | "expert";
+export type ProjectStatus = "planning" | "in-progress" | "completed" | "archived";
+
 export interface Project {
   id: string;
   user_id: string;
   name: string;
   description?: string;
+  role?: string;
   repo_url?: string;
   live_url?: string;
   tech_stack: string[];
+  industry?: string;
+  category?: string;
+  team_size?: number;
+  difficulty?: ProjectDifficulty;
+  tags: string[];
+  keywords: string[];
+  responsibilities: string[];
+  impact_metrics: string[];
+  skills_used: string[];
   highlights: string[];
+  visibility: "private" | "public";
+  status: ProjectStatus;
   start_date?: string;
   end_date?: string;
   is_featured: boolean;
@@ -80,12 +96,16 @@ export interface Skill {
   user_id: string;
   name: string;
   category?: SkillCategory;
+  subcategory?: string;
   level?: SkillLevel;
   years_experience?: number;
+  last_used?: string;
   is_primary: boolean;
 }
 
 // ── Certificates ────────────────────────────────────────────
+
+export type CertificateVerification = "unverified" | "pending" | "verified" | "expired";
 
 export interface Certificate {
   id: string;
@@ -97,6 +117,10 @@ export interface Certificate {
   credential_id?: string;
   credential_url?: string;
   skills: string[];
+  level?: string;
+  tags: string[];
+  verification_status: CertificateVerification;
+  related_project_ids: string[];
 }
 
 // ── Achievements ────────────────────────────────────────────
@@ -112,6 +136,62 @@ export interface Achievement {
   category?: AchievementCategory;
   organization?: string;
   url?: string;
+}
+
+// ── Languages ───────────────────────────────────────────────
+
+export type LanguageProficiency = "native" | "fluent" | "advanced" | "intermediate" | "beginner";
+
+export interface Language {
+  id: string;
+  user_id: string;
+  name: string;
+  proficiency?: LanguageProficiency;
+  years?: number;
+  is_native: boolean;
+}
+
+// ── Publications ────────────────────────────────────────────
+
+export type PublicationCategory = "journal" | "conference" | "workshop" | "preprint" | "book" | "other";
+
+export interface Publication {
+  id: string;
+  user_id: string;
+  title: string;
+  authors: string[];
+  venue?: string;
+  date?: string;
+  url?: string;
+  doi?: string;
+  description?: string;
+  category?: PublicationCategory;
+}
+
+// ── Awards ──────────────────────────────────────────────────
+
+export type AwardCategory = "academic" | "professional" | "competition" | "community" | "other";
+
+export interface Award {
+  id: string;
+  user_id: string;
+  title: string;
+  issuer?: string;
+  date?: string;
+  category?: AwardCategory;
+  description?: string;
+  url?: string;
+}
+
+// ── Social Links ────────────────────────────────────────────
+
+export interface SocialLink {
+  id: string;
+  user_id: string;
+  platform: string;
+  url: string;
+  username?: string;
+  display_name?: string;
 }
 
 // ── Resume Versions ─────────────────────────────────────────
@@ -188,12 +268,13 @@ export interface ProviderInfo {
   models: string[];
 }
 
-// ── API Responses ───────────────────────────────────────────
+// ── Search ──────────────────────────────────────────────────
 
-export interface ApiResponse<T> {
-  data?: T;
-  error?: string;
-  code?: string;
+export interface SearchResult {
+  id: string;
+  type: string;
+  title: string;
+  subtitle: string;
 }
 
 // ── Settings ────────────────────────────────────────────────

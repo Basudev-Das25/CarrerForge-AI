@@ -1,19 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  User, Briefcase, Code, Award, FileText, FolderOpen,
-  TrendingUp, Sparkles, ArrowRight,
+  User as UserIcon, Briefcase, Code, Award, FileText,
+  GraduationCap, Languages, BookOpen, Trophy,
+  Sparkles, ArrowRight,
 } from "lucide-react";
 import { api } from "@/services/api";
+import type { User } from "@/types";
 
 interface DashboardData {
-  profile: { full_name: string | null; summary: string | null } | null;
+  profile: User | null;
   total_education: number;
   total_experience: number;
   total_projects: number;
   total_skills: number;
   total_certificates: number;
   total_achievements: number;
+  total_languages: number;
+  total_publications: number;
+  total_awards: number;
+  total_social_links: number;
   total_documents: number;
   total_resumes: number;
   profile_completion: number;
@@ -33,28 +39,31 @@ export default function Dashboard() {
       <div className="space-y-6 animate-pulse">
         <div className="h-8 w-48 shimmer rounded" />
         <div className="grid grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-32 shimmer rounded-xl" />)}
+          {[...Array(8)].map((_, i) => <div key={i} className="h-32 shimmer rounded-xl" />)}
         </div>
       </div>
     );
   }
 
   const stats = [
+    { label: "Education", value: data?.total_education ?? 0, icon: GraduationCap, color: "text-brand-500", href: "/education" },
     { label: "Experience", value: data?.total_experience ?? 0, icon: Briefcase, color: "text-blue-500", href: "/experience" },
     { label: "Projects", value: data?.total_projects ?? 0, icon: Code, color: "text-emerald-500", href: "/projects" },
     { label: "Skills", value: data?.total_skills ?? 0, icon: Award, color: "text-amber-500", href: "/skills" },
-    { label: "Documents", value: data?.total_documents ?? 0, icon: FolderOpen, color: "text-purple-500", href: "/documents" },
+    { label: "Certificates", value: data?.total_certificates ?? 0, icon: FileText, color: "text-purple-500", href: "/certificates" },
+    { label: "Languages", value: data?.total_languages ?? 0, icon: Languages, color: "text-cyan-500", href: "/languages" },
+    { label: "Publications", value: data?.total_publications ?? 0, icon: BookOpen, color: "text-indigo-500", href: "/publications" },
+    { label: "Awards", value: data?.total_awards ?? 0, icon: Trophy, color: "text-rose-500", href: "/awards" },
   ];
 
   const quickActions = [
     { label: "Generate Resume", icon: Sparkles, href: "/resume", color: "bg-brand-600 text-white hover:bg-brand-700" },
-    { label: "Edit Profile", icon: User, href: "/profile", color: "bg-surface-2 text-text-primary hover:bg-surface-3 border border-border" },
+    { label: "Edit Profile", icon: UserIcon, href: "/profile", color: "bg-surface-2 text-text-primary hover:bg-surface-3 border border-border" },
     { label: "Upload Document", icon: FileText, href: "/documents", color: "bg-surface-2 text-text-primary hover:bg-surface-3 border border-border" },
   ];
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-text-primary">
           Welcome back{data?.profile?.full_name ? `, ${data.profile.full_name}` : ""}

@@ -79,3 +79,10 @@ class EmbeddingError(CareerForgeError):
 
     def __init__(self, message: str = "Embedding error"):
         super().__init__(message=message, code="EMBEDDING_ERROR")
+
+
+class NotFoundError(CareerForgeError):
+    """Resource not found."""
+
+    def __init__(self, message: str = "Resource not found"):
+        super().__init__(message=message, code="NOT_FOUND")

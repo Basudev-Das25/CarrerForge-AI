@@ -17,6 +17,31 @@ class OrmModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PaginatedResponse(BaseModel):
+    """Generic paginated response wrapper."""
+    items: list = []
+    total: int = 0
+    limit: int = 50
+    offset: int = 0
+
+
+class SearchResponse(BaseModel):
+    """Global search response."""
+    query: str
+    results: list[SearchResult] = []
+    total: int = 0
+
+
+class SearchResult(BaseModel):
+    """Single search result item."""
+    id: str
+    type: str
+    title: str
+    subtitle: str = ""
+    match_text: str = ""
+    score: float = 0.0
+
+
 # ── User / Profile ──────────────────────────────────────────
 
 class UserCreate(BaseModel):
@@ -51,6 +76,7 @@ class UserResponse(OrmModel):
     github_url: str | None
     portfolio_url: str | None
     summary: str | None
+    version: int
     created_at: datetime
     updated_at: datetime
 
@@ -140,10 +166,22 @@ class ExperienceResponse(OrmModel):
 class ProjectCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
+    role: str | None = None
     repo_url: str | None = None
     live_url: str | None = None
     tech_stack: list[str] = []
+    industry: str | None = None
+    category: str | None = None
+    team_size: int | None = Field(None, ge=1)
+    difficulty: str | None = Field(None, pattern=r"^(beginner|intermediate|advanced|expert)$")
+    tags: list[str] = []
+    keywords: list[str] = []
+    responsibilities: list[str] = []
+    impact_metrics: list[str] = []
+    skills_used: list[str] = []
     highlights: list[str] = []
+    visibility: str = Field("private", pattern=r"^(private|public)$")
+    status: str = Field("completed", pattern=r"^(planning|in-progress|completed|archived)$")
     start_date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     end_date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     is_featured: bool = False
@@ -152,10 +190,22 @@ class ProjectCreate(BaseModel):
 class ProjectUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=255)
     description: str | None = None
+    role: str | None = None
     repo_url: str | None = None
     live_url: str | None = None
     tech_stack: list[str] | None = None
+    industry: str | None = None
+    category: str | None = None
+    team_size: int | None = Field(None, ge=1)
+    difficulty: str | None = Field(None, pattern=r"^(beginner|intermediate|advanced|expert)$")
+    tags: list[str] | None = None
+    keywords: list[str] | None = None
+    responsibilities: list[str] | None = None
+    impact_metrics: list[str] | None = None
+    skills_used: list[str] | None = None
     highlights: list[str] | None = None
+    visibility: str | None = Field(None, pattern=r"^(private|public)$")
+    status: str | None = Field(None, pattern=r"^(planning|in-progress|completed|archived)$")
     start_date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     end_date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     is_featured: bool | None = None
@@ -166,10 +216,22 @@ class ProjectResponse(OrmModel):
     user_id: str
     name: str
     description: str | None
+    role: str | None
     repo_url: str | None
     live_url: str | None
     tech_stack: list[str]
+    industry: str | None
+    category: str | None
+    team_size: int | None
+    difficulty: str | None
+    tags: list[str]
+    keywords: list[str]
+    responsibilities: list[str]
+    impact_metrics: list[str]
+    skills_used: list[str]
     highlights: list[str]
+    visibility: str
+    status: str
     start_date: str | None
     end_date: str | None
     is_featured: bool
@@ -180,16 +242,20 @@ class ProjectResponse(OrmModel):
 class SkillCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     category: str | None = Field(None, pattern=r"^(programming|framework|tool|soft|domain)$")
+    subcategory: str | None = None
     level: str | None = Field(None, pattern=r"^(beginner|intermediate|advanced|expert)$")
     years_experience: float | None = Field(None, ge=0)
+    last_used: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     is_primary: bool = False
 
 
 class SkillUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=255)
     category: str | None = Field(None, pattern=r"^(programming|framework|tool|soft|domain)$")
+    subcategory: str | None = None
     level: str | None = Field(None, pattern=r"^(beginner|intermediate|advanced|expert)$")
     years_experience: float | None = Field(None, ge=0)
+    last_used: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     is_primary: bool | None = None
 
 
@@ -198,8 +264,10 @@ class SkillResponse(OrmModel):
     user_id: str
     name: str
     category: str | None
+    subcategory: str | None
     level: str | None
     years_experience: float | None
+    last_used: str | None
     is_primary: bool
 
 
@@ -213,6 +281,10 @@ class CertificateCreate(BaseModel):
     credential_id: str | None = None
     credential_url: str | None = None
     skills: list[str] = []
+    level: str | None = None
+    tags: list[str] = []
+    verification_status: str = Field("unverified", pattern=r"^(unverified|pending|verified|expired)$")
+    related_project_ids: list[str] = []
 
 
 class CertificateUpdate(BaseModel):
@@ -223,6 +295,10 @@ class CertificateUpdate(BaseModel):
     credential_id: str | None = None
     credential_url: str | None = None
     skills: list[str] | None = None
+    level: str | None = None
+    tags: list[str] | None = None
+    verification_status: str | None = Field(None, pattern=r"^(unverified|pending|verified|expired)$")
+    related_project_ids: list[str] | None = None
 
 
 class CertificateResponse(OrmModel):
@@ -235,6 +311,10 @@ class CertificateResponse(OrmModel):
     credential_id: str | None
     credential_url: str | None
     skills: list[str]
+    level: str | None
+    tags: list[str]
+    verification_status: str
+    related_project_ids: list[str]
 
 
 # ── Achievement ─────────────────────────────────────────────
@@ -266,6 +346,124 @@ class AchievementResponse(OrmModel):
     category: str | None
     organization: str | None
     url: str | None
+
+
+# ── Language ────────────────────────────────────────────────
+
+class LanguageCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    proficiency: str | None = Field(None, pattern=r"^(native|fluent|advanced|intermediate|beginner)$")
+    years: float | None = Field(None, ge=0)
+    is_native: bool = False
+
+
+class LanguageUpdate(BaseModel):
+    name: str | None = Field(None, min_length=1, max_length=100)
+    proficiency: str | None = Field(None, pattern=r"^(native|fluent|advanced|intermediate|beginner)$")
+    years: float | None = Field(None, ge=0)
+    is_native: bool | None = None
+
+
+class LanguageResponse(OrmModel):
+    id: str
+    user_id: str
+    name: str
+    proficiency: str | None
+    years: float | None
+    is_native: bool
+
+
+# ── Publication ─────────────────────────────────────────────
+
+class PublicationCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=500)
+    authors: list[str] = []
+    venue: str | None = None
+    date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
+    url: str | None = None
+    doi: str | None = None
+    description: str | None = None
+    category: str | None = Field(None, pattern=r"^(journal|conference|workshop|preprint|book|other)$")
+
+
+class PublicationUpdate(BaseModel):
+    title: str | None = Field(None, min_length=1, max_length=500)
+    authors: list[str] | None = None
+    venue: str | None = None
+    date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
+    url: str | None = None
+    doi: str | None = None
+    description: str | None = None
+    category: str | None = Field(None, pattern=r"^(journal|conference|workshop|preprint|book|other)$")
+
+
+class PublicationResponse(OrmModel):
+    id: str
+    user_id: str
+    title: str
+    authors: list[str]
+    venue: str | None
+    date: str | None
+    url: str | None
+    doi: str | None
+    description: str | None
+    category: str | None
+
+
+# ── Award ───────────────────────────────────────────────────
+
+class AwardCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    issuer: str | None = None
+    date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
+    category: str | None = Field(None, pattern=r"^(academic|professional|competition|community|other)$")
+    description: str | None = None
+    url: str | None = None
+
+
+class AwardUpdate(BaseModel):
+    title: str | None = Field(None, min_length=1, max_length=255)
+    issuer: str | None = None
+    date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
+    category: str | None = Field(None, pattern=r"^(academic|professional|competition|community|other)$")
+    description: str | None = None
+    url: str | None = None
+
+
+class AwardResponse(OrmModel):
+    id: str
+    user_id: str
+    title: str
+    issuer: str | None
+    date: str | None
+    category: str | None
+    description: str | None
+    url: str | None
+
+
+# ── Social Link ─────────────────────────────────────────────
+
+class SocialLinkCreate(BaseModel):
+    platform: str = Field(..., min_length=1, max_length=50)
+    url: str = Field(..., min_length=1, max_length=512)
+    username: str | None = None
+    display_name: str | None = None
+
+
+class SocialLinkUpdate(BaseModel):
+    platform: str | None = Field(None, min_length=1, max_length=50)
+    url: str | None = Field(None, min_length=1, max_length=512)
+    username: str | None = None
+    display_name: str | None = None
+
+
+class SocialLinkResponse(OrmModel):
+    id: str
+    user_id: str
+    platform: str
+    url: str
+    username: str | None
+    display_name: str | None
 
 
 # ── Document ────────────────────────────────────────────────
@@ -305,9 +503,16 @@ class ResumeVersionResponse(OrmModel):
 
 class DashboardData(BaseModel):
     profile: UserResponse | None
-    total_experiences: int = 0
+    total_education: int = 0
+    total_experience: int = 0
     total_projects: int = 0
     total_skills: int = 0
+    total_certificates: int = 0
+    total_achievements: int = 0
+    total_languages: int = 0
+    total_publications: int = 0
+    total_awards: int = 0
+    total_social_links: int = 0
     total_documents: int = 0
     total_resumes: int = 0
     recent_documents: list[DocumentResponse] = []
