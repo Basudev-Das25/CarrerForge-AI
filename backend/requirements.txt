@@ -3,22 +3,24 @@ fastapi==0.115.0
 uvicorn[standard]==0.30.0
 pydantic==2.9.0
 pydantic-settings==2.5.0
+email-validator>=2.1.0
 
 # Database
 sqlalchemy==2.0.35
 aiosqlite==0.20.0
+greenlet>=3.0.0
 alembic==1.13.0
 
 # Vector Store
 lancedb==0.17.0
-pyarrow==17.0.0
+pyarrow==18.0.0
 
 # Embeddings
-sentence-transformers==3.1.0
+sentence-transformers>=3.1.0
 numpy>=1.24.0
 
 # Document Processing
-pymupdf==1.24.0
+pymupdf==1.25.0
 pytesseract==0.3.10
 python-multipart==0.0.9
 

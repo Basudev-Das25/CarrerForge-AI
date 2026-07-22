@@ -40,5 +40,18 @@
     ],
     "resources": []
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIG1lc3NhZ2UgdmVyaWZpY2F0aW9uIGtleQ==",
+      "endpoints": [
+        "https://github.com/Basudev-Das/CareerForge-AI/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "both"
+      }
+    },
+    "process": {
+      "all": true
+    }
+  }
 }

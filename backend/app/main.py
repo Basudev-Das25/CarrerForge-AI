@@ -15,12 +15,15 @@ from app.routers import (
     ai_orchestrator,
     ats,
     ats_intelligence,
+    backup,
+    diagnostics,
     documents,
     jobs,
     knowledge,
     profile,
     resume_generator,
     resumes,
+    updates,
 )
 from app.utils.logger import setup_logging
 
@@ -76,6 +79,9 @@ app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["jobs"])
 app.include_router(agents_api.router, prefix="/api/v1/agents", tags=["agents"])
 app.include_router(resume_generator.router, prefix="/api/v1/resume", tags=["resume"])
 app.include_router(ats_intelligence.router, prefix="/api/v1/ats-intelligence", tags=["ats-intelligence"])
+app.include_router(updates.router, prefix="/api/v1/updates", tags=["updates"])
+app.include_router(backup.router, prefix="/api/v1/backup", tags=["backup"])
+app.include_router(diagnostics.router, prefix="/api/v1/diagnostics", tags=["diagnostics"])
 
 
 @app.get("/")
