@@ -521,6 +521,66 @@ class ApiClient {
       throw new Error("Install failed");
     }
   }
+
+  // ── Backup ────────────────────────────────────────────────
+
+  async listBackups() {
+    return this.request<{ backups: Array<Record<string, unknown>>; total: number }>("/backup/");
+  }
+
+  async createBackup(description: string = "") {
+    return this.request<{ backup: Record<string, unknown> }>("/backup/create", {
+      method: "POST",
+      body: JSON.stringify({ description }),
+    });
+  }
+
+  async restoreBackup(backupId: string) {
+    return this.request<{ restored_files: number }>("/backup/restore", {
+      method: "POST",
+      body: JSON.stringify({ backup_id: backupId }),
+    });
+  }
+
+  async deleteBackup(backupId: string) {
+    return this.request(`/backup/${backupId}`, { method: "DELETE" });
+  }
+
+  async exportBackup(backupId: string, exportPath: string) {
+    return this.request<{ path: string }>("/backup/export", {
+      method: "POST",
+      body: JSON.stringify({ backup_id: backupId, export_path: exportPath }),
+    });
+  }
+
+  async importBackup(importPath: string) {
+    return this.request<{ backup: Record<string, unknown> }>("/backup/import", {
+      method: "POST",
+      body: JSON.stringify({ import_path: importPath }),
+    });
+  }
+
+  // ── Diagnostics ──────────────────────────────────────────
+
+  async getSystemInfo() {
+    return this.request<Record<string, unknown>>("/diagnostics/system");
+  }
+
+  async healthCheck() {
+    return this.request<Record<string, string>>("/diagnostics/health", { method: "POST" });
+  }
+
+  async getLogs(maxLines: number = 200) {
+    return this.request<{ logs: string; log_files: string[] }>(`/diagnostics/logs?max_lines=${maxLines}`);
+  }
+
+  async clearLogs() {
+    return this.request<{ cleared: number }>("/diagnostics/logs/clear", { method: "POST" });
+  }
+
+  async exportDiagnostics() {
+    return this.request<{ path: string; message: string }>("/diagnostics/export", { method: "POST" });
+  }
 }
 
 export const api = new ApiClient();
