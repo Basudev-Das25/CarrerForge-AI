@@ -35,9 +35,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/careerforge-backend"
-    ],
+    "externalBin": [],
     "resources": []
   },
   "plugins": {
