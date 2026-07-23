@@ -20,6 +20,8 @@ pub fn run() {
             commands::update::download_update,
             commands::update::install_update,
             commands::update::get_current_version,
+            commands::backend::start_backend,
+            commands::backend::check_backend,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CareerForge AI");

@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppLayout } from "./components/layout/AppLayout";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import Onboarding from "./screens/Onboarding/index";
@@ -19,6 +19,7 @@ import ResumeGenerator from "./screens/ResumeGenerator";
 import ATSDashboard from "./screens/ATSDashboard";
 import UpdateSettings from "./screens/UpdateSettings";
 import Feedback from "./screens/Feedback";
+import { api } from "./services/api";
 
 function AboutPage() {
   return (
@@ -59,13 +60,64 @@ function AboutPage() {
   );
 }
 
+function LoadingScreen({ message }: { message: string }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-surface-0">
+      <div className="text-center space-y-6">
+        <div className="flex justify-center">
+          <div className="h-16 w-16 rounded-2xl bg-brand-600 flex items-center justify-center shadow-lg animate-pulse">
+            <span className="text-white text-2xl font-bold">CF</span>
+          </div>
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-text-primary">CareerForge AI</h1>
+          <p className="mt-2 text-sm text-text-secondary">{message}</p>
+        </div>
+        <div className="flex justify-center">
+          <div className="h-1 w-32 rounded-full bg-surface-2 overflow-hidden">
+            <div className="h-full rounded-full bg-brand-500 animate-pulse" style={{ width: "60%" }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [onboarded, setOnboarded] = useState(
     () => localStorage.getItem("careerforge_onboarding_complete") === "true",
   );
+  const [backendReady, setBackendReady] = useState(false);
+  const [backendMessage, setBackendMessage] = useState("Starting backend...");
+
+  useEffect(() => {
+    let attempts = 0;
+    const maxAttempts = 30;
+    const interval = setInterval(async () => {
+      attempts++;
+      try {
+        await api.health();
+        setBackendReady(true);
+        clearInterval(interval);
+      } catch {
+        if (attempts >= maxAttempts) {
+          setBackendMessage("Backend not available. Please start the backend manually: cd backend && uvicorn app.main:app --port 8000");
+          clearInterval(interval);
+        } else {
+          setBackendMessage(`Starting backend... (attempt ${attempts}/${maxAttempts})`);
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (!onboarded) {
     return <Onboarding onComplete={() => setOnboarded(true)} />;
+  }
+
+  if (!backendReady) {
+    return <LoadingScreen message={backendMessage} />;
   }
 
   return (
@@ -90,6 +142,7 @@ function App() {
           <Route path="settings/updates" element={<UpdateSettings />} />
           <Route path="settings" element={<div className="p-8 text-text-secondary">Settings — coming soon</div>} />
           <Route path="help" element={<Feedback />} />
+          <Route path="feedback" element={<Feedback />} />
           <Route path="about" element={<AboutPage />} />
         </Route>
       </Routes>
