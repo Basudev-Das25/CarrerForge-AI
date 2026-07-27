@@ -85,7 +85,7 @@ class AIOrchestrator:
         self._rate_limiters: dict[str, float] = {}
         self._max_retries = 3
         self._retry_delay = 1.0
-        self._timeout = 60.0
+        self._timeout = 180.0  # 3 minutes — free models can be slow
         self._semaphore = asyncio.Semaphore(10)  # Max 10 concurrent requests
 
     def register_provider(self, provider: AIProvider) -> None:
@@ -138,6 +138,12 @@ class AIOrchestrator:
                 if rendered["system"]:
                     messages.append(ChatMessage(role=MessageRole.SYSTEM, content=rendered["system"]))
                 messages.append(ChatMessage(role=MessageRole.USER, content=rendered["user"]))
+
+        # Auto-register providers if none registered (e.g. config reloaded)
+        if not self._providers:
+            from app.config.persistence import apply_config_to_settings, register_providers_from_config
+            apply_config_to_settings()
+            register_providers_from_config(self)
 
         # Check cache
         resolved_model = model or self.get_provider(provider).default_model

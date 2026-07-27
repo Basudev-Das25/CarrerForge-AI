@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
+
 use tauri_plugin_updater::UpdaterExt;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,9 +21,7 @@ pub fn get_current_version() -> Result<String, String> {
 
 /// Check for available updates using the Tauri updater
 #[tauri::command]
-pub async fn check_for_update(
-    app: tauri::AppHandle,
-) -> Result<UpdateInfo, String> {
+pub async fn check_for_update(app: tauri::AppHandle) -> Result<UpdateInfo, String> {
     let updater = app.updater().map_err(|e| e.to_string())?;
 
     match updater.check().await {
@@ -51,9 +49,7 @@ pub async fn check_for_update(
 
 /// Download and install an update (the Tauri updater handles installation)
 #[tauri::command]
-pub async fn download_update(
-    app: tauri::AppHandle,
-) -> Result<String, String> {
+pub async fn download_update(app: tauri::AppHandle) -> Result<String, String> {
     let updater = app.updater().map_err(|e| e.to_string())?;
 
     match updater.check().await {

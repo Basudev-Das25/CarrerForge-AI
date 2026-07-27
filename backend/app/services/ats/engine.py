@@ -133,14 +133,15 @@ class ATSEngine:
 
         current_resume = resume.copy()
         current_score = report.overall_score
+        current_report = report
 
         for iteration in range(max_iterations):
             if current_score >= target_score:
                 break
 
-            # Generate optimization plan
+            # Generate optimization plan with full analysis context
             opt_items = await self._generate_optimization_plan(
-                current_resume, job_profile, current_score, target_score
+                current_resume, job_profile, current_report, current_score, target_score
             )
             plan.items.extend(opt_items)
 
@@ -148,8 +149,8 @@ class ATSEngine:
             improved = await self._apply_optimizations(current_resume, opt_items, job_profile)
 
             # Re-analyze
-            new_report = await self.analyze(improved, job_profile)
-            new_score = new_report.overall_score
+            current_report = await self.analyze(improved, job_profile)
+            new_score = current_report.overall_score
 
             # Record iteration
             plan.iterations.append({
@@ -374,29 +375,72 @@ class ATSEngine:
         self,
         resume: dict[str, Any],
         job_profile: dict[str, Any],
+        report: ATSReport,
         current_score: float,
         target_score: float,
     ) -> list[OptimizationItem]:
-        """Generate optimization suggestions via AI."""
-        jd_text = job_profile.get("summary", "") + " " + str(job_profile.get("required_skills", []))
-        resume_text = self._extract_full_text(resume.get("sections", []))
+        """Generate optimization suggestions via AI with full analysis context."""
+        # Build comprehensive JD context — prefer raw_jd if available
+        jd_text = job_profile.get("raw_jd", "")
+        if not jd_text:
+            jd_parts = []
+            if job_profile.get("summary"):
+                jd_parts.append(f"Summary: {job_profile['summary']}")
+            if job_profile.get("required_skills"):
+                jd_parts.append(f"Required Skills: {', '.join(job_profile['required_skills'])}")
+            if job_profile.get("technologies"):
+                jd_parts.append(f"Technologies: {', '.join(job_profile['technologies'])}")
+            if job_profile.get("keywords"):
+                jd_parts.append(f"Keywords: {', '.join(job_profile['keywords'][:30])}")
+            jd_text = "\n".join(jd_parts) or str(job_profile)
+
+        # Build detailed resume context with sections
+        sections = resume.get("sections", [])
+        resume_detail = []
+        for s in sections:
+            items_text = "; ".join(i.get("text", "")[:150] for i in s.get("items", [])[:5])
+            resume_detail.append(f"[{s.get('name', 'Section')}] {items_text}")
+        resume_text = "\n".join(resume_detail)
+
+        # Build missing keyword context from the analysis report
+        missing_kw = report.missing_keywords[:20] if report.missing_keywords else []
+        matched_kw = report.matched_keywords[:10] if report.matched_keywords else []
+        suggestions_ctx = ""
+        if report.suggestions:
+            suggestions_ctx = "\n\nAnalyzer suggestions:\n" + "\n".join(
+                f"- [{s.get('priority', 'medium')}] {s.get('description', '')}"
+                for s in report.suggestions[:8]
+            )
 
         response = await orchestrator.chat(
             messages=[
                 ChatMessage(
                     role=MessageRole.SYSTEM,
                     content=(
-                        "You are an ATS optimization expert. Given a resume and job description, "
-                        "suggest specific improvements to increase ATS score. "
-                        "Return a JSON array of optimization items, each with: "
-                        "priority (high/medium/low), section, category, description, "
-                        "expected_improvement (0-10), confidence (0-1), recruiter_impact. "
+                        "You are an expert ATS resume optimizer. Your job is to produce SPECIFIC, ACTIONABLE "
+                        "optimization items that will measurably increase the ATS score.\n\n"
+                        "For each item, you must:\n"
+                        "1. Identify the EXACT section to modify\n"
+                        "2. Name the SPECIFIC missing keywords to incorporate\n"
+                        "3. Describe the EXACT rewrite (not generic advice)\n"
+                        "4. Estimate realistic improvement (0-10 scale)\n\n"
+                        "Return a JSON array of optimization items, each with:\n"
+                        "priority (high/medium/low), section, category (keyword|bullet|structure|format),\n"
+                        "description (specific rewrite instruction), keywords_to_add (list of exact keywords),\n"
+                        "expected_improvement (0-10), confidence (0-1), recruiter_impact.\n"
                         "Return ONLY valid JSON array."
                     ),
                 ),
                 ChatMessage(
                     role=MessageRole.USER,
-                    content=f"Current ATS Score: {current_score:.1f}/100\nTarget: {target_score}/100\n\nJob:\n{jd_text[:2000]}\n\nResume:\n{resume_text[:2000]}",
+                    content=(
+                        f"## Current ATS Score: {current_score:.1f}/100 | Target: {target_score}/100\n\n"
+                        f"## Job Description\n{jd_text[:2000]}\n\n"
+                        f"## MISSING Keywords (must incorporate)\n{', '.join(missing_kw)}\n\n"
+                        f"## Matched Keywords (already present)\n{', '.join(matched_kw)}\n\n"
+                        f"## Resume Content\n{resume_text[:3000]}"
+                        f"{suggestions_ctx}"
+                    ),
                 ),
             ],
             temperature=0.2,
@@ -421,6 +465,7 @@ class ATSEngine:
                 section=item.get("section", ""),
                 category=item.get("category", ""),
                 description=item.get("description", ""),
+                keywords_to_add=item.get("keywords_to_add", []),
                 expected_improvement=item.get("expected_improvement", 5),
                 confidence=item.get("confidence", 0.5),
                 recruiter_impact=item.get("recruiter_impact", ""),
@@ -437,23 +482,55 @@ class ATSEngine:
         """Apply optimization suggestions to the resume using AI."""
         import json
 
-        items_desc = "\n".join(f"- [{i.priority}] {i.description}" for i in items[:10])
-        resume_str = json.dumps(resume.get("sections", []))[:3000]
+        # Build detailed instruction per optimization item
+        instructions = []
+        all_keywords_to_add = set()
+        for i, item in enumerate(items[:10]):
+            kw_part = ""
+            if hasattr(item, "keywords_to_add") and item.keywords_to_add:
+                kw_part = f"\n   Keywords to incorporate: {', '.join(item.keywords_to_add)}"
+                all_keywords_to_add.update(item.keywords_to_add)
+            instructions.append(
+                f"{i+1}. [{item.priority.upper()}] Section: '{item.section}' | Category: {item.category}\n"
+                f"   Action: {item.description}{kw_part}"
+            )
+
+        # Build resume with full section structure
+        sections = resume.get("sections", [])
+        resume_parts = []
+        for s in sections:
+            items_text = []
+            for it in s.get("items", []):
+                items_text.append(f"  - {it.get('text', '')}")
+            resume_parts.append(f"[{s.get('name', 'Section')}]\n" + "\n".join(items_text))
+        resume_str = "\n".join(resume_parts)
 
         response = await orchestrator.chat(
             messages=[
                 ChatMessage(
                     role=MessageRole.SYSTEM,
                     content=(
-                        "Improve this resume based on optimization suggestions. "
-                        "Only modify what is suggested. Preserve all existing content. "
-                        "Never invent new projects, experience, or skills. "
-                        "Return the improved resume JSON (same structure as input)."
+                        "You are an expert ATS resume rewriter. You MUST actively rewrite and improve "
+                        "the resume content — not just suggest changes.\n\n"
+                        "RULES:\n"
+                        "1. REWRITE weak bullets with stronger action verbs and quantified metrics\n"
+                        "2. INCORPORATE the specified missing keywords naturally into relevant sections\n"
+                        "3. EXPAND thin sections with more detail and specificity\n"
+                        "4. PRESERVE the user's actual experience — do NOT fabricate jobs or degrees\n"
+                        "5. IMPROVE every bullet the suggestions mention\n\n"
+                        "Return a JSON object with a 'sections' array. Each section has 'name' and 'items' "
+                        "(array of objects with 'text' key). Keep the same section names and order.\n"
+                        "Return ONLY valid JSON."
                     ),
                 ),
                 ChatMessage(
                     role=MessageRole.USER,
-                    content=f"Suggestions:\n{items_desc}\n\nCurrent resume sections:\n{resume_str}",
+                    content=(
+                        f"## Optimization Instructions\n\n"
+                        + "\n\n".join(instructions)
+                        + f"\n\n## Keywords to weave into content\n{', '.join(all_keywords_to_add) if all_keywords_to_add else 'None specified'}\n\n"
+                        f"## Current Resume\n{resume_str[:4000]}"
+                    ),
                 ),
             ],
             temperature=0.3,
@@ -467,12 +544,12 @@ class ATSEngine:
                 text = text.split("\n", 1)[1].rsplit("```", 1)[0]
             start = text.find("{")
             end = text.rfind("}") + 1
-            improved_sections = json.loads(text[start:end])
+            improved = json.loads(text[start:end])
             result = resume.copy()
-            if isinstance(improved_sections, dict) and "sections" in improved_sections:
-                result["sections"] = improved_sections["sections"]
-            elif isinstance(improved_sections, list):
-                result["sections"] = improved_sections
+            if isinstance(improved, dict) and "sections" in improved:
+                result["sections"] = improved["sections"]
+            elif isinstance(improved, list):
+                result["sections"] = improved
             return result
         except Exception:
             logger.warning("ats.optimize.parse_failed")

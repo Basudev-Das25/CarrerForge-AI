@@ -38,7 +38,13 @@ export default function ExperienceScreen() {
     setSaving(true);
     try {
       const data = {
-        ...form,
+        company: form.company,
+        title: form.title,
+        start_date: form.start_date,
+        location: form.location || null,
+        employment_type: form.employment_type || null,
+        end_date: form.end_date || null,
+        description: form.description || null,
         highlights: form.highlights.split("\n").filter(Boolean),
         skills_used: form.skills_used.split(",").map((s) => s.trim()).filter(Boolean),
       };

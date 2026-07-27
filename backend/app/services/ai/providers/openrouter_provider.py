@@ -15,8 +15,9 @@ from app.services.ai.providers.base import (
 class OpenRouterProvider(AIProvider):
     """OpenRouter API provider — routes to multiple model providers."""
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, default_model: str | None = None):
         self._api_key = api_key
+        self._default_model = default_model
 
     @property
     def name(self) -> str:
@@ -30,7 +31,14 @@ class OpenRouterProvider(AIProvider):
             "google/gemini-pro-1.5",
             "meta-llama/llama-3.1-405b",
             "mistralai/mixtral-8x7b",
+            "nvidia/nemotron-3-ultra-550b-a55b:free",
         ]
+
+    @property
+    def default_model(self) -> str:
+        if self._default_model:
+            return self._default_model
+        return super().default_model
 
     async def chat(
         self,

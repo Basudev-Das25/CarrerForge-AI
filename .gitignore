@@ -25,6 +25,7 @@ target/
 # ===========================
 src-tauri/target/
 src-tauri/binaries/
+.backend-sidecar-build/
 
 # ===========================
 # Environment & Secrets
@@ -34,6 +35,10 @@ src-tauri/binaries/
 .env.*.local
 .env.production
 .env.staging
+backend/config/ai_providers.json
+*.key
+*.pem
+*.p12
 
 # ===========================
 # IDE & Editor

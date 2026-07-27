@@ -35,8 +35,16 @@ export default function Awards() {
     if (!form.title.trim()) { toast.error("Title is required"); return; }
     setSaving(true);
     try {
-      if (editId) { await api.updateAward(editId, form); toast.success("Updated"); }
-      else { await api.createAward(form); toast.success("Added"); }
+      const data = {
+        title: form.title,
+        issuer: form.issuer || null,
+        date: form.date || null,
+        category: form.category || null,
+        description: form.description || null,
+        url: form.url || null,
+      };
+      if (editId) { await api.updateAward(editId, data); toast.success("Updated"); }
+      else { await api.createAward(data); toast.success("Added"); }
       setModalOpen(false); load();
     } catch { toast.error("Failed to save"); } finally { setSaving(false); }
   };

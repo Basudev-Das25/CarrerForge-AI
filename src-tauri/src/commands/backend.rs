@@ -1,71 +1,44 @@
-use std::process::Command;
-use std::thread;
-
-/// Start the Python backend server as a background process
+/// Start the packaged backend if it is not already healthy.
+///
+/// The setup hook normally launches it before the frontend appears. Keeping
+/// this command as a retry path is useful after a transient startup failure,
+/// and it deliberately reuses the same sidecar launcher rather than falling
+/// back to an unbundled system Python.
 #[tauri::command]
 pub fn start_backend() -> Result<String, String> {
-    // Find the Python backend path
-    let app_dir = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(|p| p.to_path_buf()))
-        .unwrap_or_default();
-
-    // Try multiple possible locations for the backend
-    let possible_paths = vec![
-        app_dir.join("backend").join("start.py"),
-        app_dir.join("careerforge-backend"),
-        app_dir.join("backend").join("app").join("main.py"),
-        std::env::current_dir()
-            .ok()
-            .and_then(|p| p.parent().map(|p| p.join("backend").join("app").join("main.py")))
-            .unwrap_or_default(),
-    ];
-
-    let mut started = false;
-
-    for backend_path in possible_paths {
-        if backend_path.exists() {
-            let backend_dir = backend_path.parent().unwrap_or(&app_dir);
-
-            // Try to start with uvicorn
-            let _ = Command::new("python")
-                .arg("-m")
-                .arg("uvicorn")
-                .arg("app.main:app")
-                .arg("--host")
-                .arg("127.0.0.1")
-                .arg("--port")
-                .arg("8000")
-                .current_dir(backend_dir)
-                .spawn();
-
-            // Wait for backend to be ready
-            thread::sleep(std::time::Duration::from_secs(2));
-            started = true;
-            break;
-        }
+    // First check if backend is actually healthy (responding to HTTP)
+    if is_backend_healthy() {
+        return Ok("Backend already running on port 8000".into());
     }
 
-    if started {
-        Ok("Backend started on port 8000".to_string())
-    } else {
-        // Try starting from the working directory
-        let _ = Command::new("python")
-            .arg("-m")
-            .arg("uvicorn")
-            .arg("app.main:app")
-            .arg("--host")
-            .arg("127.0.0.1")
-            .arg("--port")
-            .arg("8000")
-            .spawn();
+    // Kill any process on port 8000 first
+    crate::kill_orphan_on_port(8000);
+    std::thread::sleep(std::time::Duration::from_millis(300));
 
-        thread::sleep(std::time::Duration::from_secs(2));
-        Ok("Backend started on port 8000 (from working directory)".to_string())
+    match crate::start_python_backend()? {
+        Some(pid) => {
+            crate::store_backend_pid(pid);
+            Ok("Backend started on port 8000".into())
+        }
+        None => Ok("Backend already running on port 8000".into()),
     }
 }
 
-/// Check if the backend is running
+/// Check if the backend is actually responding to HTTP requests.
+fn is_backend_healthy() -> bool {
+    match reqwest::blocking::get("http://127.0.0.1:8000/api/v1/health") {
+        Ok(resp) => resp.status().is_success(),
+        Err(_) => false,
+    }
+}
+
+/// Read the startup log file so the frontend can display diagnostics.
+#[tauri::command]
+pub fn get_backend_log() -> Result<String, String> {
+    std::fs::read_to_string(crate::log_path()).map_err(|e| format!("Could not read log: {e}"))
+}
+
+/// Check if the backend is running.
 #[tauri::command]
 pub async fn check_backend() -> Result<bool, String> {
     match reqwest::get("http://127.0.0.1:8000/api/v1/health").await {

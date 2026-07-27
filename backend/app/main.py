@@ -7,7 +7,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
+from app.config.persistence import apply_config_to_settings, register_providers_from_config
 from app.db.base import Base, engine
+from app.services.ai.orchestrator import orchestrator
 from app.routers import (
     admin,
     agents_api,
@@ -44,7 +46,11 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    logger.info("careerforge.startup", data_dir=str(data_dir))
+    # Load persisted AI config and register providers
+    apply_config_to_settings()
+    register_providers_from_config(orchestrator)
+
+    logger.info("careerforge.startup", data_dir=str(data_dir), provider=settings.ai_provider)
     yield
     logger.info("careerforge.shutdown")
     await engine.dispose()

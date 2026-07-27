@@ -32,7 +32,12 @@ export default function Languages() {
     if (!form.name.trim()) { toast.error("Name is required"); return; }
     setSaving(true);
     try {
-      const data = { ...form, years: form.years ? parseFloat(form.years) : undefined };
+      const data = {
+        name: form.name,
+        proficiency: form.proficiency || null,
+        years: form.years ? parseFloat(form.years) : null,
+        is_native: form.is_native,
+      };
       if (editId) { await api.updateLanguage(editId, data); toast.success("Updated"); }
       else { await api.createLanguage(data); toast.success("Added"); }
       setModalOpen(false); load();

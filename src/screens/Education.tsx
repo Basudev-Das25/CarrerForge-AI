@@ -39,8 +39,14 @@ export default function Education() {
     setSaving(true);
     try {
       const data = {
-        ...form,
-        gpa: form.gpa ? parseFloat(form.gpa) : undefined,
+        degree: form.degree,
+        institution: form.institution,
+        start_date: form.start_date,
+        field_of_study: form.field_of_study || null,
+        location: form.location || null,
+        end_date: form.end_date || null,
+        gpa: form.gpa ? parseFloat(form.gpa) : null,
+        description: form.description || null,
         highlights: form.highlights.split("\n").filter(Boolean),
       };
       if (editId) {

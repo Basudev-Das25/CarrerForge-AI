@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:backend": "backend\\.venv\\Scripts\\python.exe scripts\\build_backend_sidecar.py",
+    "build:desktop": "npm run build && npm run build:backend",
     "preview": "vite preview",
     "tauri": "tauri",
     "lint": "eslint src --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",

@@ -50,6 +50,14 @@ export default function Onboarding({ onComplete }: Props) {
       localStorage.setItem("careerforge_onboarding_complete", "true");
       if (selectedProvider && apiKey) {
         localStorage.setItem(`careerforge_provider_${selectedProvider}`, apiKey);
+        // Persist API key to backend so orchestrator can use it
+        const payload: Record<string, string> = { ai_provider: selectedProvider };
+        payload[`${selectedProvider}_api_key`] = apiKey;
+        await fetch("http://127.0.0.1:8000/api/v1/config/ai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
       }
       toast.success("Welcome to CareerForge AI!");
       onComplete();

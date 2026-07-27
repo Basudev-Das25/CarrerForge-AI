@@ -64,11 +64,25 @@ export default function ATSDashboard() {
     setAnalyzing(true);
     try {
       const resume = { sections: [{ name: "Full Resume", items: [{ text: resumeText }] }] };
-      const jobProfile: Record<string, string[]> = { keywords: [], ats_keywords: [], required_skills: [], technologies: [] };
-      // Simple keyword extraction from JD
-      const words = jobText.toLowerCase().split(/\s+/);
-      const unique = [...new Set(words.filter((w) => w.length > 3))];
-      jobProfile.keywords = unique.slice(0, 30);
+
+      // Smarter keyword extraction from JD
+      const jdLower = jobText.toLowerCase();
+      const words = jdLower.split(/[\s,;()\[\]{}]+/);
+      const stopWords = new Set(["the", "and", "for", "with", "this", "that", "from", "will", "have", "are", "was", "were", "been", "being", "can", "may", "our", "your", "their", "its", "who", "what", "which", "where", "when", "how", "all", "each", "than", "them", "then", "also", "such", "into", "over", "only", "very", "not", "but", "about", "more", "other", "some", "any", "most", "just", "should", "would", "could"]);
+      const keywords = [...new Set(words.filter((w) => w.length > 2 && !stopWords.has(w)))].slice(0, 40);
+
+      // Extract tech/skill mentions
+      const techPatterns = ["python", "javascript", "typescript", "react", "node", "java", "c\\+\\+", "rust", "go", "ruby", "php", "swift", "kotlin", "sql", "nosql", "docker", "kubernetes", "aws", "azure", "gcp", "git", "linux", "machine learning", "deep learning", "ai", "nlp", "html", "css", "sass", "tailwind", "fastapi", "django", "flask", "express", "nextjs", "vue", "angular", "svelte", "postgresql", "mysql", "mongodb", "redis", "graphql", "rest", "api", "microservices", "ci/cd", "terraform", "jenkins"];
+      const technologies = techPatterns.filter((t) => jdLower.includes(t));
+
+      const jobProfile: Record<string, string | string[]> = {
+        keywords,
+        ats_keywords: keywords.slice(0, 20),
+        required_skills: technologies,
+        technologies,
+        summary: jobText.slice(0, 2000),
+        raw_jd: jobText,
+      };
 
       const d = await api.analyzeResume(resume, jobProfile);
       setReport(d.report as unknown as ATSReport);
@@ -85,7 +99,14 @@ export default function ATSDashboard() {
     setOptimizing(true);
     try {
       const resume = { sections: [{ name: "Full Resume", items: [{ text: resumeText }] }] };
-      const jobProfile = { keywords: report.matched_keywords, ats_keywords: report.missing_keywords, required_skills: [] };
+      const jobProfile = {
+        keywords: report.matched_keywords,
+        ats_keywords: report.missing_keywords,
+        required_skills: [],
+        technologies: [],
+        summary: jobText.slice(0, 2000),
+        raw_jd: jobText,
+      };
       const d = await api.optimizeResume(resume, jobProfile, 85, 3);
       setOptimizedResult(d);
       toast.success(`Score improved from ${d.initial_score.toFixed(1)} to ${d.final_score.toFixed(1)}`);

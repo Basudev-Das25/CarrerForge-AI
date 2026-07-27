@@ -88,6 +88,7 @@ class OptimizationItem:
     section: str = ""
     category: str = ""
     description: str = ""
+    keywords_to_add: list[str] = field(default_factory=list)
     expected_improvement: float = 0.0
     evidence_used: list[str] = field(default_factory=list)
     confidence: float = 0.0

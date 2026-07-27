@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
     anthropic_model: str = Field(default="claude-sonnet-4-20250514", alias="ANTHROPIC_MODEL")
     openrouter_api_key: str = Field(default="", alias="OPENROUTER_API_KEY")
-    openrouter_model: str = Field(default="anthropic/claude-sonnet-4", alias="OPENROUTER_MODEL")
+    openrouter_model: str = Field(default="nvidia/nemotron-3-ultra-550b-a55b:free", alias="OPENROUTER_MODEL")
     grok_api_key: str = Field(default="", alias="GROK_API_KEY")
     grok_model: str = Field(default="grok-2", alias="GROK_MODEL")
     huggingface_api_key: str = Field(default="", alias="HUGGINGFACE_API_KEY")

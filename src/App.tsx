@@ -19,7 +19,6 @@ import ResumeGenerator from "./screens/ResumeGenerator";
 import ATSDashboard from "./screens/ATSDashboard";
 import UpdateSettings from "./screens/UpdateSettings";
 import Feedback from "./screens/Feedback";
-import { api } from "./services/api";
 
 function AboutPage() {
   return (
@@ -92,24 +91,74 @@ function App() {
 
   useEffect(() => {
     let attempts = 0;
-    const maxAttempts = 30;
-    const interval = setInterval(async () => {
-      attempts++;
-      try {
-        await api.health();
-        setBackendReady(true);
-        clearInterval(interval);
-      } catch {
-        if (attempts >= maxAttempts) {
-          setBackendMessage("Backend not available. Please start the backend manually: cd backend && uvicorn app.main:app --port 8000");
-          clearInterval(interval);
-        } else {
-          setBackendMessage(`Starting backend... (attempt ${attempts}/${maxAttempts})`);
-        }
-      }
-    }, 1000);
+    const maxAttempts = 60; // 60 seconds total
+    let backendRequested = false;
+    let cancelled = false;
 
-    return () => clearInterval(interval);
+    const poll = async () => {
+      while (!cancelled && attempts < maxAttempts) {
+        attempts++;
+
+        try {
+          // Call the Tauri health command first - this is more reliable in production
+          const { invoke } = await import("@tauri-apps/api/core");
+          const health = await invoke<string>("get_health");
+          const healthData = JSON.parse(health);
+          if (healthData?.status === "ok" || healthData?.status === "healthy") {
+            setBackendReady(true);
+            return;
+          }
+        } catch (err: any) {
+          // Tauri command failed, try direct API health check
+          try {
+            const resp = await fetch("http://127.0.0.1:8000/api/v1/health");
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data?.status === "healthy" || data?.status === "ok") {
+                setBackendReady(true);
+                return;
+              }
+            }
+          } catch {
+            // Both health checks failed
+          }
+        }
+
+        // After a few failed attempts, ask Tauri to start the backend
+        if (attempts === 3 && !backendRequested) {
+          backendRequested = true;
+          setBackendMessage("Starting backend...");
+          try {
+            const { invoke } = await import("@tauri-apps/api/core");
+            await invoke("start_backend");
+          } catch {
+            // start_backend failed — keep polling, maybe it's already running
+          }
+        }
+
+        setBackendMessage(`Waiting for backend... (${attempts}/${maxAttempts})`);
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
+      if (!cancelled) {
+        // Read the startup log to show the user what failed
+        let logDetail = "";
+        try {
+          const { invoke } = await import("@tauri-apps/api/core");
+          logDetail = await invoke<string>("get_backend_log").catch(() => "");
+        } catch {
+          // invoke not available (web mode)
+        }
+        setBackendMessage(
+          logDetail
+            ? `Backend failed to start. Log:\n${logDetail.slice(-800)}`
+            : "Backend not available. Check backend-startup.log next to the .exe for details.",
+        );
+      }
+    };
+
+    poll();
+    return () => { cancelled = true; };
   }, []);
 
   if (!onboarded) {

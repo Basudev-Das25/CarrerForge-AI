@@ -37,7 +37,18 @@ export default function Certificates() {
     if (!form.title.trim() || !form.issuer.trim()) { toast.error("Title and issuer are required"); return; }
     setSaving(true);
     try {
-      const data = { ...form, skills: form.skills.split(",").map((s) => s.trim()).filter(Boolean), tags: form.tags.split(",").map((s) => s.trim()).filter(Boolean) };
+      const data = {
+        title: form.title,
+        issuer: form.issuer,
+        issue_date: form.issue_date || null,
+        expiry_date: form.expiry_date || null,
+        credential_id: form.credential_id || null,
+        credential_url: form.credential_url || null,
+        level: form.level || null,
+        verification_status: form.verification_status || "unverified",
+        skills: form.skills.split(",").map((s) => s.trim()).filter(Boolean),
+        tags: form.tags.split(",").map((s) => s.trim()).filter(Boolean),
+      };
       if (editId) { await api.updateCertificate(editId, data); toast.success("Updated"); }
       else { await api.createCertificate(data); toast.success("Added"); }
       setModalOpen(false); load();

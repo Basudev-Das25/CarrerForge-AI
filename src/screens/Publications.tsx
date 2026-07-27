@@ -35,7 +35,16 @@ export default function Publications() {
     if (!form.title.trim()) { toast.error("Title is required"); return; }
     setSaving(true);
     try {
-      const data = { ...form, authors: form.authors.split(",").map((a) => a.trim()).filter(Boolean) };
+      const data = {
+        title: form.title,
+        venue: form.venue || null,
+        date: form.date || null,
+        url: form.url || null,
+        doi: form.doi || null,
+        description: form.description || null,
+        category: form.category || null,
+        authors: form.authors.split(",").map((a) => a.trim()).filter(Boolean),
+      };
       if (editId) { await api.updatePublication(editId, data); toast.success("Updated"); }
       else { await api.createPublication(data); toast.success("Added"); }
       setModalOpen(false); load();

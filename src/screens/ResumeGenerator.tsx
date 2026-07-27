@@ -11,14 +11,27 @@ import {
   Loader2,
   Grid3X3,
   Settings2,
+  Key,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { api } from "@/services/api";
 import { Button } from "@/components/common/Button";
+import { Input } from "@/components/common/Input";
 import { EmptyState } from "@/components/common/EmptyState";
 import { toast } from "@/components/common/Toast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type AnyRecord = Record<string, any>;
+
+const AI_PROVIDERS = [
+  { id: "openrouter", name: "OpenRouter", keyField: "openrouter_api_key", modelField: "openrouter_model", placeholder: "sk-or-v1-...", defaultModel: "nvidia/nemotron-3-ultra-550b-a55b:free" },
+  { id: "openai", name: "OpenAI", keyField: "openai_api_key", modelField: "openai_model", placeholder: "sk-...", defaultModel: "gpt-4o" },
+  { id: "anthropic", name: "Anthropic", keyField: "anthropic_api_key", modelField: "anthropic_model", placeholder: "sk-ant-...", defaultModel: "claude-sonnet-4-20250514" },
+  { id: "ollama", name: "Ollama (Local)", keyField: "", modelField: "ollama_model", placeholder: "", defaultModel: "llama3" },
+  { id: "grok", name: "Grok", keyField: "grok_api_key", modelField: "grok_model", placeholder: "xai-...", defaultModel: "grok-2" },
+  { id: "huggingface", name: "HuggingFace", keyField: "huggingface_api_key", modelField: "", placeholder: "hf_...", defaultModel: "" },
+];
 
 interface ResumeVersion {
   id: string;
@@ -64,9 +77,16 @@ export default function ResumeGenerator() {
   const [, setCompilationErrors] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState<string>("typst");
 
+  // AI Provider settings
+  const [aiSettingsOpen, setAiSettingsOpen] = useState(false);
+  const [aiProvider, setAiProvider] = useState("openrouter");
+  const [aiApiKey, setAiApiKey] = useState("");
+  const [aiModel, setAiModel] = useState("nvidia/nemotron-3-ultra-550b-a55b:free");
+
   useEffect(() => {
     loadTemplates();
     loadVersions();
+    loadAiConfig();
   }, []);
 
   const loadTemplates = async () => {
@@ -91,6 +111,49 @@ export default function ResumeGenerator() {
       const d = await api.listResumeVersions();
       setVersions(d.versions || []);
     } catch {}
+  };
+
+  const loadAiConfig = async () => {
+    try {
+      const resp = await fetch("http://127.0.0.1:8000/api/v1/config/ai");
+      if (resp.ok) {
+        const config = await resp.json();
+        if (config.ai_provider) setAiProvider(config.ai_provider);
+        if (config.openrouter_model) setAiModel(config.openrouter_model);
+        // API keys are masked, so check localStorage as fallback
+        const savedKey = localStorage.getItem(`careerforge_provider_${config.ai_provider || "openrouter"}`);
+        if (savedKey) setAiApiKey(savedKey);
+      }
+    } catch {
+      // Backend might not be running yet
+    }
+  };
+
+  const saveAiConfig = async () => {
+    const providerDef = AI_PROVIDERS.find((p) => p.id === aiProvider);
+    if (!providerDef) return;
+    const payload: Record<string, string> = { ai_provider: aiProvider };
+    if (providerDef.keyField && aiApiKey) {
+      payload[providerDef.keyField] = aiApiKey;
+      localStorage.setItem(`careerforge_provider_${aiProvider}`, aiApiKey);
+    }
+    if (providerDef.modelField && aiModel) {
+      payload[providerDef.modelField] = aiModel;
+    }
+    try {
+      const resp = await fetch("http://127.0.0.1:8000/api/v1/config/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (resp.ok) {
+        toast.success(`AI provider set to ${providerDef.name}`);
+      } else {
+        toast.error("Failed to save AI config");
+      }
+    } catch {
+      toast.error("Could not reach backend");
+    }
   };
 
   const handleTemplateSelect = (name: string) => {
@@ -434,6 +497,43 @@ export default function ResumeGenerator() {
       {/* Input Tab */}
       {currentTab === "input" && (
         <div className="space-y-4">
+          {/* AI Provider Settings */}
+          <div className="card">
+            <button onClick={() => setAiSettingsOpen(!aiSettingsOpen)} className="flex items-center justify-between w-full text-left">
+              <div className="flex items-center gap-2">
+                <Key className="h-4 w-4 text-text-tertiary" />
+                <span className="text-sm font-medium text-text-primary">AI Provider</span>
+                <span className="badge badge-info text-2xs">{AI_PROVIDERS.find((p) => p.id === aiProvider)?.name || aiProvider}</span>
+              </div>
+              {aiSettingsOpen ? <ChevronUp className="h-4 w-4 text-text-tertiary" /> : <ChevronDown className="h-4 w-4 text-text-tertiary" />}
+            </button>
+            {aiSettingsOpen && (
+              <div className="mt-4 space-y-3 border-t border-border pt-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs text-text-tertiary">Provider</label>
+                  <select value={aiProvider} onChange={(e) => {
+                    setAiProvider(e.target.value);
+                    const def = AI_PROVIDERS.find((p) => p.id === e.target.value);
+                    if (def) setAiModel(def.defaultModel);
+                  }} className="input text-sm">
+                    {AI_PROVIDERS.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+                {AI_PROVIDERS.find((p) => p.id === aiProvider)?.keyField && (
+                  <Input label="API Key" type="password" value={aiApiKey} onChange={(e) => setAiApiKey(e.target.value)}
+                    placeholder={AI_PROVIDERS.find((p) => p.id === aiProvider)?.placeholder || ""} />
+                )}
+                <Input label="Model" value={aiModel} onChange={(e) => setAiModel(e.target.value)}
+                  placeholder={AI_PROVIDERS.find((p) => p.id === aiProvider)?.defaultModel || ""} />
+                <div className="flex justify-end">
+                  <Button onClick={saveAiConfig} variant="secondary" size="sm">Save Provider Settings</Button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="card space-y-4">
             <h3 className="section-title">Job Description</h3>
             <p className="section-description">Paste the job description you want to tailor your resume for.</p>

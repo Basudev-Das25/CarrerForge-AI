@@ -15,26 +15,8 @@
     "fs:allow-write",
     "fs:allow-exists",
     "fs:allow-mkdir",
-    {
-      "identifier": "shell:allow-execute",
-      "allow": [
-        {
-          "name": "binaries/careerforge-backend",
-          "sidecar": true,
-          "args": true
-        }
-      ]
-    },
-    {
-      "identifier": "shell:allow-spawn",
-      "allow": [
-        {
-          "name": "binaries/careerforge-backend",
-          "sidecar": true,
-          "args": true
-        }
-      ]
-    },
+    "shell:allow-execute",
+    "shell:allow-spawn",
     "shell:allow-kill"
   ]
 }
