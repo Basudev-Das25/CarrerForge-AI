@@ -59,7 +59,20 @@ export default function Projects() {
     setSaving(true);
     try {
       const data = {
-        ...form,
+        name: form.name,
+        description: form.description || null,
+        role: form.role || null,
+        repo_url: form.repo_url || null,
+        live_url: form.live_url || null,
+        industry: form.industry || null,
+        category: form.category || null,
+        difficulty: form.difficulty || null,
+        visibility: form.visibility || null,
+        status: form.status || null,
+        start_date: form.start_date || null,
+        end_date: form.end_date || null,
+        team_size: form.team_size ? parseInt(form.team_size) : null,
+        is_featured: form.is_featured,
         tech_stack: form.tech_stack.split(",").map((s) => s.trim()).filter(Boolean),
         tags: form.tags.split(",").map((s) => s.trim()).filter(Boolean),
         keywords: form.keywords.split(",").map((s) => s.trim()).filter(Boolean),
@@ -67,7 +80,6 @@ export default function Projects() {
         responsibilities: form.responsibilities.split("\n").filter(Boolean),
         impact_metrics: form.impact_metrics.split("\n").filter(Boolean),
         highlights: form.highlights.split("\n").filter(Boolean),
-        team_size: form.team_size ? parseInt(form.team_size) : undefined,
       };
       if (editId) { await api.updateProject(editId, data); toast.success("Updated"); }
       else { await api.createProject(data); toast.success("Added"); }

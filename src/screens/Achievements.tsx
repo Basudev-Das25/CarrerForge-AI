@@ -35,8 +35,16 @@ export default function Achievements() {
     if (!form.title.trim()) { toast.error("Title is required"); return; }
     setSaving(true);
     try {
-      if (editId) { await api.updateAchievement(editId, form); toast.success("Updated"); }
-      else { await api.createAchievement(form); toast.success("Added"); }
+      const data = {
+        title: form.title,
+        description: form.description || null,
+        date: form.date || null,
+        category: form.category || null,
+        organization: form.organization || null,
+        url: form.url || null,
+      };
+      if (editId) { await api.updateAchievement(editId, data); toast.success("Updated"); }
+      else { await api.createAchievement(data); toast.success("Added"); }
       setModalOpen(false); load();
     } catch { toast.error("Failed to save"); } finally { setSaving(false); }
   };

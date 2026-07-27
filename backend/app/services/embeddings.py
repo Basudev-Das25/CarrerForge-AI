@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import structlog
 import uuid
+
+import structlog
 
 from app.config.settings import settings
 from app.db.lance import count_embeddings, delete_embedding, search_similar, upsert_embedding

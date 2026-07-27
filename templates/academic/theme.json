@@ -1,0 +1,22 @@
+{
+  "primary_color": "#1a1a1a",
+  "accent_color": "#444444",
+  "text_color": "#1a1a1a",
+  "secondary_text": "#444444",
+  "muted_text": "#777777",
+  "divider_color": "#999999",
+  "link_color": "#1a1a1a",
+  "background": "#ffffff",
+  "font_family": "Times New Roman",
+  "heading_size": "12pt",
+  "body_size": "10.5pt",
+  "small_size": "10pt",
+  "header_size": "20pt",
+  "line_spacing": "0.7em",
+  "margin_x": "0.75in",
+  "margin_y": "0.65in",
+  "section_spacing": "6pt",
+  "bullet_style": "circle",
+  "heading_weight": "bold",
+  "divider_width": "0.5pt"
+}

@@ -90,7 +90,7 @@ class EducationCreate(BaseModel):
     location: str | None = None
     start_date: str = Field(..., pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     end_date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
-    gpa: float | None = Field(None, ge=0, le=4.0)
+    gpa: float | None = Field(None, ge=0, le=10.0)
     description: str | None = None
     highlights: list[str] = []
 
@@ -102,7 +102,7 @@ class EducationUpdate(BaseModel):
     location: str | None = None
     start_date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
     end_date: str | None = Field(None, pattern=r"^\d{4}-\d{2}(-\d{2})?$")
-    gpa: float | None = Field(None, ge=0, le=4.0)
+    gpa: float | None = Field(None, ge=0, le=10.0)
     description: str | None = None
     highlights: list[str] | None = None
 

@@ -6,9 +6,10 @@ relationships, enabling semantic traversal and relationship-aware retrieval.
 
 from __future__ import annotations
 
-import structlog
 from dataclasses import dataclass, field
 from typing import Any
+
+import structlog
 
 logger = structlog.get_logger("careerforge.knowledge.graph")
 

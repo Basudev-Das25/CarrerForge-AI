@@ -307,11 +307,279 @@ class ApiClient {
 
   // ── ATS ─────────────────────────────────────────────────
 
-  async analyzeResume(resumeId: string, jobDescription?: string) {
+  async analyzeResumeLegacy(resumeId: string, jobDescription?: string) {
     return this.request<{ status: string; message: string }>("/ats/analyze", {
       method: "POST",
       body: JSON.stringify({ resume_id: resumeId, job_description: jobDescription }),
     });
+  }
+
+  // ── Resume Generator ─────────────────────────────────────
+
+  async generateResumeFull(jobDescription: string, template: string = "modern", maxIterations: number = 3) {
+    return this.request<Record<string, unknown>>("/resume/generate", {
+      method: "POST",
+      body: JSON.stringify({ job_description: jobDescription, template, max_iterations: maxIterations }),
+    });
+  }
+
+  async generateResumeBlueprint(jobDescription: string) {
+    return this.request<{ blueprint: Record<string, unknown> }>("/resume/blueprint", {
+      method: "POST",
+      body: JSON.stringify({ job_description: jobDescription }),
+    });
+  }
+
+  async validateResume(resume: Record<string, unknown>, targetKeywords?: string[]) {
+    return this.request<{ validation: Record<string, unknown> }>("/resume/validate", {
+      method: "POST",
+      body: JSON.stringify({ resume, target_keywords: targetKeywords || [] }),
+    });
+  }
+
+  async listResumeTemplates() {
+    return this.request<{ templates: Array<{ name: string; display_name: string; description: string; page_size: string }> }>("/resume/templates");
+  }
+
+  async renderResumeTemplate(template: string, resume: Record<string, unknown>) {
+    return this.request<{ typst: string; template: string }>(`/resume/templates/${template}/render`, {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async listResumeVersions() {
+    return this.request<{ total: number; versions: Array<{ id: string; title: string; template_name?: string; ats_score?: number; created_at: string }> }>("/resume/versions");
+  }
+
+  async getResumeVersion(id: string) {
+    return this.request<Record<string, unknown>>(`/resume/versions/${id}`);
+  }
+
+  async deleteResumeVersion(id: string) {
+    return this.request(`/resume/versions/${id}`, { method: "DELETE" });
+  }
+
+  async compareResumeVersions(v1: string, v2: string) {
+    return this.request<Record<string, unknown>>(`/resume/versions/compare?v1=${v1}&v2=${v2}`, { method: "POST" });
+  }
+
+  async exportResumeTypst(resume: Record<string, unknown>, template: string = "modern") {
+    return this.request<{ typst: string; format: string }>(`/resume/export/typst?template=${template}`, {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async exportResumeText(resume: Record<string, unknown>) {
+    return this.request<{ text: string; format: string }>("/resume/export/text", {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async exportResumeMarkdown(resume: Record<string, unknown>) {
+    return this.request<{ markdown: string; format: string }>("/resume/export/markdown", {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async compileResume(resume: Record<string, unknown>, _template: string = "modern") {
+    return this.request<{ compile: Record<string, unknown>; typst: string }>("/resume/compile", {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async validateResumeTypst(resume: Record<string, unknown>, _template: string = "modern") {
+    return this.request<{ valid: boolean; errors: Array<Record<string, unknown>> }>("/resume/validate-typst", {
+      method: "POST",
+      body: JSON.stringify(resume),
+    });
+  }
+
+  async getResumeTemplateTheme(name: string) {
+    return this.request<{ template: string; theme: Record<string, unknown> }>(`/resume/themes/${name}`);
+  }
+
+  // ── ATS Intelligence ──────────────────────────────────
+
+  async analyzeResume(resume: Record<string, unknown>, jobProfile: Record<string, unknown>) {
+    return this.request<{ report: Record<string, unknown> }>("/ats-intelligence/analyze", {
+      method: "POST",
+      body: JSON.stringify({ resume, job_profile: jobProfile }),
+    });
+  }
+
+  async analyzeVersion(versionId: string) {
+    return this.request<{ report: Record<string, unknown>; report_id: string }>(
+      `/ats-intelligence/analyze-version/${versionId}`,
+    );
+  }
+
+  async optimizeResume(resume: Record<string, unknown>, jobProfile: Record<string, unknown>, targetScore: number = 85, maxIterations: number = 3) {
+    return this.request<{
+      resume: Record<string, unknown>;
+      plan: Record<string, unknown>;
+      initial_score: number;
+      final_score: number;
+      improvement: number;
+    }>("/ats-intelligence/optimize", {
+      method: "POST",
+      body: JSON.stringify({ resume, job_profile: jobProfile, target_score: targetScore, max_iterations: maxIterations }),
+    });
+  }
+
+  async compareResumes(resumeA: Record<string, unknown>, resumeB: Record<string, unknown>, jobProfile?: Record<string, unknown>) {
+    return this.request<{ comparison: Record<string, unknown> }>("/ats-intelligence/compare", {
+      method: "POST",
+      body: JSON.stringify({ resume_a: resumeA, resume_b: resumeB, job_profile: jobProfile }),
+    });
+  }
+
+  async compareVersions(v1: string, v2: string) {
+    return this.request<Record<string, unknown>>(
+      `/ats-intelligence/compare-versions?v1=${v1}&v2=${v2}`,
+      { method: "POST" },
+    );
+  }
+
+  async listAtsReports(limit: number = 50) {
+    return this.request<{ total: number; reports: Array<{ id: string; score: number; created_at: string }> }>(
+      `/ats-intelligence/reports?limit=${limit}`,
+    );
+  }
+
+  async getAtsReport(reportId: string) {
+    return this.request<Record<string, unknown>>(`/ats-intelligence/reports/${reportId}`);
+  }
+
+  async exportAtsReport(reportId: string, format: string = "markdown") {
+    return this.request<{ markdown?: string; json?: Record<string, unknown>; format: string }>(
+      `/ats-intelligence/reports/${reportId}/export?format=${format}`,
+      { method: "POST" },
+    );
+  }
+
+  // ── Updates ──────────────────────────────────────────────
+
+  async getCurrentVersion() {
+    return this.request<{ version: string; build_number: number; platform: string; architecture: string; published_date: string }>("/updates/version");
+  }
+
+  async getUpdateChannels() {
+    return this.request<{ channels: Array<{ name: string; display_name: string; description: string; base_url: string }> }>("/updates/channels");
+  }
+
+  async getUpdateSettings() {
+    return this.request<Record<string, unknown>>("/updates/settings");
+  }
+
+  async updateSettings(settings: Record<string, unknown>) {
+    return this.request<Record<string, unknown>>("/updates/settings", {
+      method: "PUT",
+      body: JSON.stringify(settings),
+    });
+  }
+
+  async resetUpdateSettings() {
+    return this.request<Record<string, unknown>>("/updates/settings/reset", { method: "POST" });
+  }
+
+  async getUpdateHistory() {
+    return this.request<{ updates: Array<Record<string, unknown>>; total: number }>("/updates/history");
+  }
+
+  async getReleaseNotes() {
+    return this.request<{ releases: Array<Record<string, unknown>> }>("/updates/release-notes");
+  }
+
+  async checkForUpdate() {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke("check_for_update");
+    } catch {
+      return { available: false, version: "" };
+    }
+  }
+
+  async downloadUpdate() {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke("download_update");
+    } catch {
+      throw new Error("Download failed");
+    }
+  }
+
+  async installUpdate() {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      return await invoke("install_update");
+    } catch {
+      throw new Error("Install failed");
+    }
+  }
+
+  // ── Backup ────────────────────────────────────────────────
+
+  async listBackups() {
+    return this.request<{ backups: Array<Record<string, unknown>>; total: number }>("/backup/");
+  }
+
+  async createBackup(description: string = "") {
+    return this.request<{ backup: Record<string, unknown> }>("/backup/create", {
+      method: "POST",
+      body: JSON.stringify({ description }),
+    });
+  }
+
+  async restoreBackup(backupId: string) {
+    return this.request<{ restored_files: number }>("/backup/restore", {
+      method: "POST",
+      body: JSON.stringify({ backup_id: backupId }),
+    });
+  }
+
+  async deleteBackup(backupId: string) {
+    return this.request(`/backup/${backupId}`, { method: "DELETE" });
+  }
+
+  async exportBackup(backupId: string, exportPath: string) {
+    return this.request<{ path: string }>("/backup/export", {
+      method: "POST",
+      body: JSON.stringify({ backup_id: backupId, export_path: exportPath }),
+    });
+  }
+
+  async importBackup(importPath: string) {
+    return this.request<{ backup: Record<string, unknown> }>("/backup/import", {
+      method: "POST",
+      body: JSON.stringify({ import_path: importPath }),
+    });
+  }
+
+  // ── Diagnostics ──────────────────────────────────────────
+
+  async getSystemInfo() {
+    return this.request<Record<string, unknown>>("/diagnostics/system");
+  }
+
+  async healthCheck() {
+    return this.request<Record<string, string>>("/diagnostics/health", { method: "POST" });
+  }
+
+  async getLogs(maxLines: number = 200) {
+    return this.request<{ logs: string; log_files: string[] }>(`/diagnostics/logs?max_lines=${maxLines}`);
+  }
+
+  async clearLogs() {
+    return this.request<{ cleared: number }>("/diagnostics/logs/clear", { method: "POST" });
+  }
+
+  async exportDiagnostics() {
+    return this.request<{ path: string; message: string }>("/diagnostics/export", { method: "POST" });
   }
 }
 

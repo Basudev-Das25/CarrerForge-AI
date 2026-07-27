@@ -118,7 +118,7 @@ async def upload_multiple(
                 result = {"text": "", "hash": "", "category": "other", "embedding_ids": []}
 
             repo = _get_doc_repo(db)
-            doc = await repo.create({
+            await repo.create({
                 "id": doc_id,
                 "file_path": str(file_path),
                 "original_name": file.filename or "unknown",

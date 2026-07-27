@@ -56,7 +56,15 @@ export default function Skills() {
     if (!form.name.trim()) { toast.error("Name is required"); return; }
     setSaving(true);
     try {
-      const data = { ...form, years_experience: form.years_experience ? parseFloat(form.years_experience) : undefined };
+      const data = {
+        name: form.name,
+        category: form.category || null,
+        subcategory: form.subcategory || null,
+        level: form.level || null,
+        years_experience: form.years_experience ? parseFloat(form.years_experience) : null,
+        last_used: form.last_used || null,
+        is_primary: form.is_primary,
+      };
       if (editId) { await api.updateSkill(editId, data); toast.success("Updated"); }
       else { await api.createSkill(data); toast.success("Added"); }
       setModalOpen(false); load();

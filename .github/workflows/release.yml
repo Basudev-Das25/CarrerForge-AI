@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -r requirements.txt
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          PYTHONPATH=. pytest ../tests/ --tb=short -q
+
+      - name: Run frontend build
+        run: |
+          npm run build
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ steps.create_release.outputs.id }}
+
+      - name: Generate checksums
+        run: |
+          cd src-tauri/target/release/bundle
+          echo "SHA256 Checksums" > SHA256SUMS.txt
+          for f in $(find . -name "*.exe" -o -name "*.msi" -o -name "*.zip" 2>/dev/null); do
+            certutil -hashfile "$f" SHA256 >> SHA256SUMS.txt 2>/dev/null || shasum -a 256 "$f" >> SHA256SUMS.txt
+          done
+
+      - name: Upload installer
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            src-tauri/target/release/bundle/nsis/CareerForgeAI_Setup_*.exe
+            src-tauri/target/release/bundle/msi/CareerForgeAI_*.msi
+            src-tauri/target/release/bundle/nsis/SHA256SUMS.txt
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate update manifest
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          cat > latest.json <<EOF
+          {
+            "version": "$VERSION",
+            "notes": "CareerForge AI $VERSION",
+            "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "platforms": {
+              "windows-x86_64": {
+                "url": "https://github.com/Basudev-Das/CareerForge-AI/releases/download/${VERSION}/CareerForgeAI_Setup_${VERSION}.exe",
+                "signature": "dW50cnVzdGVkIG1lc3NhZ2UgdmVyaWZpY2F0aW9uIGtleQ=="
+              }
+            }
+          }
+          EOF
+
+      - name: Upload update manifest
+        uses: softprops/action-gh-release@v2
+        with:
+          files: latest.json
+          make_latest: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

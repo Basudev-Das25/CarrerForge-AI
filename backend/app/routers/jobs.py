@@ -64,8 +64,6 @@ async def classify_job(request: ParseJDRequest):
 @router.post("/match")
 async def match_candidate(request: MatchRequest):
     """Match a candidate profile against a job profile."""
-    ji = JobIntelligence()
-    # This would need a job profile as input too
     return {"status": "not_implemented", "message": "Requires job_profile input"}
 
 

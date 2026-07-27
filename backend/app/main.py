@@ -7,18 +7,25 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config.settings import settings
+from app.config.persistence import apply_config_to_settings, register_providers_from_config
 from app.db.base import Base, engine
+from app.services.ai.orchestrator import orchestrator
 from app.routers import (
     admin,
     agents_api,
     ai,
     ai_orchestrator,
     ats,
+    ats_intelligence,
+    backup,
+    diagnostics,
     documents,
     jobs,
     knowledge,
     profile,
+    resume_generator,
     resumes,
+    updates,
 )
 from app.utils.logger import setup_logging
 
@@ -39,7 +46,11 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    logger.info("careerforge.startup", data_dir=str(data_dir))
+    # Load persisted AI config and register providers
+    apply_config_to_settings()
+    register_providers_from_config(orchestrator)
+
+    logger.info("careerforge.startup", data_dir=str(data_dir), provider=settings.ai_provider)
     yield
     logger.info("careerforge.shutdown")
     await engine.dispose()
@@ -72,6 +83,11 @@ app.include_router(knowledge.router, prefix="/api/v1/knowledge", tags=["knowledg
 app.include_router(ai_orchestrator.router, prefix="/api/v1/ai-orchestrator", tags=["ai-orchestrator"])
 app.include_router(jobs.router, prefix="/api/v1/jobs", tags=["jobs"])
 app.include_router(agents_api.router, prefix="/api/v1/agents", tags=["agents"])
+app.include_router(resume_generator.router, prefix="/api/v1/resume", tags=["resume"])
+app.include_router(ats_intelligence.router, prefix="/api/v1/ats-intelligence", tags=["ats-intelligence"])
+app.include_router(updates.router, prefix="/api/v1/updates", tags=["updates"])
+app.include_router(backup.router, prefix="/api/v1/backup", tags=["backup"])
+app.include_router(diagnostics.router, prefix="/api/v1/diagnostics", tags=["diagnostics"])
 
 
 @app.get("/")

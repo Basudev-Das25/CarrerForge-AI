@@ -7,10 +7,11 @@ expansion for comprehensive results.
 
 from __future__ import annotations
 
-import structlog
 import re
 from dataclasses import dataclass, field
 from typing import Any
+
+import structlog
 
 from app.services.knowledge.graph import KnowledgeGraph, KnowledgeNode
 
@@ -301,11 +302,11 @@ def get_knowledge_summary(
 
 # ── Internal Helpers ────────────────────────────────────────
 
-DIMENSION_KEYS = list([
+DIMENSION_KEYS = [
     "leadership", "machine_learning", "backend", "frontend",
     "cloud", "devops", "research", "data_science",
     "management", "communication", "ats_coverage", "industry", "seniority",
-])
+]
 
 
 def _get_candidates(
@@ -314,8 +315,6 @@ def _get_candidates(
 ) -> list[tuple[KnowledgeNode, float]]:
     """Get and pre-score all candidate nodes."""
     candidates = []
-    query_lower = request.query.lower()
-    query_words = set(re.findall(r'\w+', query_lower))
 
     for node in graph._nodes.values():
         if request.entity_types and node.entity_type not in request.entity_types:

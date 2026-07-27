@@ -108,7 +108,7 @@ class AIProvider(ABC):
         """Check provider health. Default: try a simple chat."""
         start = time.time()
         try:
-            response = await self.chat(
+            await self.chat(
                 [ChatMessage(role=MessageRole.USER, content="Say 'ok'")],
                 max_tokens=10,
             )

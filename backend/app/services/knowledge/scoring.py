@@ -167,7 +167,7 @@ def _apply_property_boosts(node: KnowledgeNode, scores: dict[str, float]) -> Non
         if props.get("is_featured"):
             for dim in scores:
                 scores[dim] = min(scores[dim] + 0.05, 1.0)
-        if props.get("team_size", 0) > 1:
+        if (props.get("team_size") or 0) > 1:
             scores["leadership"] = min(scores.get("leadership", 0) + 0.15, 1.0)
         if props.get("impact_metrics"):
             scores["management"] = min(scores.get("management", 0) + 0.1, 1.0)
@@ -178,7 +178,7 @@ def _apply_property_boosts(node: KnowledgeNode, scores: dict[str, float]) -> Non
             for dim in scores:
                 if scores[dim] > 0:
                     scores[dim] = min(scores[dim] + 0.1, 1.0)
-        if props.get("years_experience", 0) >= 5:
+        if (props.get("years_experience") or 0) >= 5:
             scores["seniority"] = min(scores.get("seniority", 0) + 0.15, 1.0)
 
     # Certificate-specific boosts

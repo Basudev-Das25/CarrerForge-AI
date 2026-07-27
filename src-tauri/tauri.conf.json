@@ -6,7 +6,7 @@
   "mainBinaryName": "careerforge-ai",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run build:desktop",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../dist"
   },
@@ -24,7 +24,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:* ws://localhost:*; img-src 'self' data:; script-src 'self' 'unsafe-inline'"
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:* http://127.0.0.1:* http://127.0.0.1:8000 ws://localhost:*; img-src 'self' data:; script-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {
@@ -35,10 +35,20 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [
-      "binaries/careerforge-backend"
-    ],
-    "resources": []
+    "externalBin": ["binaries/careerforge-backend"]
   },
-  "plugins": {}
+  "plugins": {
+    "updater": {
+      "pubkey": "MCowBQYDK2VwAyEAwuFySWVcbowdpdUl98NL7Kc1pjA+szeuplso0toks+U=",
+      "endpoints": [
+        "https://github.com/Basudev-Das/CareerForge-AI/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    },
+    "process": {
+      "all": true
+    }
+  }
 }
