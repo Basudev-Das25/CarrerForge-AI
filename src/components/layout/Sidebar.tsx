@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -43,7 +44,7 @@ const BOTTOM_ITEMS = [
   { to: "/help", icon: HelpCircle, label: "Help" },
 ] as const;
 
-export function Sidebar() {
+const Sidebar = React.memo(function Sidebar() {
   return (
     <aside className="flex w-64 flex-col border-r border-border bg-surface-1">
       {/* Logo */}
@@ -98,4 +99,6 @@ export function Sidebar() {
       </div>
     </aside>
   );
-}
+});
+
+export { Sidebar };
