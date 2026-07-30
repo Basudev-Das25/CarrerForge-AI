@@ -18,6 +18,7 @@ const Links = lazy(() => import("./screens/Links"));
 const ResumeGenerator = lazy(() => import("./screens/ResumeGenerator"));
 const ATSDashboard = lazy(() => import("./screens/ATSDashboard"));
 const UpdateSettings = lazy(() => import("./screens/UpdateSettings"));
+const Settings = lazy(() => import("./screens/Settings"));
 const Feedback = lazy(() => import("./screens/Feedback"));
 
 function AboutPage() {
@@ -199,7 +200,7 @@ function App() {
             <Route path="ats" element={<ATSDashboard />} />
             <Route path="documents" element={<div className="p-8 text-text-secondary">Document Vault — coming soon</div>} />
             <Route path="settings/updates" element={<UpdateSettings />} />
-            <Route path="settings" element={<div className="p-8 text-text-secondary">Settings — coming soon</div>} />
+            <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Feedback />} />
             <Route path="feedback" element={<Feedback />} />
             <Route path="about" element={<AboutPage />} />
