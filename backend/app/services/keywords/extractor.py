@@ -21,7 +21,7 @@ logger = structlog.get_logger("careerforge.keywords.extractor")
 TECH_KEYWORDS: set[str] = {
     # Languages
     "python", "javascript", "typescript", "java", "c++", "c#", "rust", "go",
-    "ruby", "php", "swift", "kotlin", "scala", "perl", "r", "matlab",
+    "ruby", "php", "swift", "kotlin", "scala", "perl", "matlab",
     "sql", "bash", "shell", "powershell", "dart", "lua", "haskell",
     # Frontend
     "react", "angular", "vue", "svelte", "next.js", "nuxt", "html", "css",
@@ -112,16 +112,23 @@ class KeywordResult:
 
 
 def _extract_ngrams(text: str, n: int) -> list[str]:
-    """Extract n-grams from text."""
-    words = re.findall(r"[a-zA-Z][a-zA-Z0-9.#+/]+", text.lower())
-    return [" ".join(words[i:i+n]) for i in range(len(words) - n + 1)]
+    """Extract n-grams from text, stripping punctuation from tokens."""
+    words = re.findall(r"[a-zA-Z][a-zA-Z0-9+#./]*", text.lower())
+    # Strip trailing punctuation from each word
+    clean = [w.rstrip(".,;:!?") for w in words if w.rstrip(".,;:!?")]
+    return [" ".join(clean[i:i+n]) for i in range(len(clean) - n + 1)]
 
 
 def _normalize(token: str) -> str:
     """Normalize a keyword token."""
     token = token.strip().lower()
-    token = re.sub(r"[^a-zA-Z0-9+#./]", " ", token)
+    token = re.sub(r"[^a-zA-Z0-9+#./-]", " ", token)
     return " ".join(token.split())
+
+
+def _contains_stop_word(tokens: list[str]) -> bool:
+    """Check if any token is a stop word."""
+    return any(t in STOP_WORDS for t in tokens)
 
 
 class KeywordExtractor:
@@ -141,29 +148,31 @@ class KeywordExtractor:
             if norm and len(norm) > 2 and norm not in STOP_WORDS:
                 candidates[norm] = candidates.get(norm, 0) + 1
 
-        # Bigrams
+        # Bigrams — skip if any constituent word is a stop word
         for token in _extract_ngrams(jd_text, 2):
             norm = _normalize(token)
             parts = norm.split()
-            if len(parts) == 2 and not all(p in STOP_WORDS for p in parts):
+            if len(parts) == 2 and not _contains_stop_word(parts):
                 candidates[norm] = candidates.get(norm, 0) + 1.5
 
-        # Trigrams
+        # Trigrams — skip if any constituent word is a stop word
         for token in _extract_ngrams(jd_text, 3):
             norm = _normalize(token)
             parts = norm.split()
-            if len(parts) == 3 and not all(p in STOP_WORDS for p in parts):
+            if len(parts) == 3 and not _contains_stop_word(parts):
                 candidates[norm] = candidates.get(norm, 0) + 2
 
         if not candidates:
             return KeywordResult([], [], [], [])
 
-        # Phase 2: Detect technologies (exact match against known dictionary)
+        # Phase 2: Detect technologies (word-boundary match against known dictionary)
         jd_lower = jd_text.lower()
-        detected_techs = sorted(
-            t for t in TECH_KEYWORDS 
-            if t in jd_lower or t.replace("-", " ") in jd_lower or t.replace(".", r"\.") in jd_lower
-        )[:15]
+        detected_techs = []
+        for t in TECH_KEYWORDS:
+            pattern = re.compile(r"(?<![a-z])" + re.escape(t) + r"(?![a-z])")
+            if pattern.search(jd_lower):
+                detected_techs.append(t)
+        detected_techs = sorted(detected_techs)[:15]
 
         # Phase 3: Semantic scoring using sentence-transformers
         # Rank candidates by similarity to skill/requirement seed phrases
