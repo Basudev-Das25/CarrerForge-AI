@@ -224,10 +224,7 @@ export default function ResumeStudio() {
   // ── Step Navigation ─────────────────────────────────────
 
   const goToStep = (s: StepKey) => setStep(s);
-  const prevStep = () => {
-    const idx = STEPS.findIndex((s) => s.key === step);
-    if (idx > 0) goToStep(STEPS[idx - 1].key);
-  };
+  const prevStep = () => goToStep("input");
 
   // ── Full Generate Flow (Step 1 → 2 → 3 → 4) ────────────
 
@@ -532,7 +529,10 @@ export default function ResumeStudio() {
         const currentIdx = STEPS.findIndex((st) => st.key === step);
         const isActive = s.key === step;
         const isDone = idx < currentIdx;
-        const isClickable = idx <= currentIdx + 1; // Allow going back and one step forward
+        // Step 1 always clickable. Steps 4-6 only after generation.
+        // Steps 2 (blueprint) and 3 (generate) are auto-navigated only.
+        const hasResume = editableSections.length > 0;
+        const isClickable = s.key === "input" || (hasResume && s.key !== "blueprint" && s.key !== "generate");
 
         return (
           <div key={s.key} className="flex items-center flex-1 min-w-0">

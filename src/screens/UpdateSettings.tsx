@@ -272,7 +272,7 @@ export default function UpdateSettingsScreen() {
           <p className="text-sm text-text-tertiary">No updates installed yet</p>
         ) : (
           <div className="space-y-2">
-            {history.map((entry, i) => (
+            {history.slice(0, 3).map((entry, i) => (
               <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                 <div className="flex items-center gap-2">
                   {entry.success ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
