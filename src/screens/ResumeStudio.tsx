@@ -189,41 +189,35 @@ export default function ResumeStudio() {
     if (idx > 0) goToStep(STEPS[idx - 1].key);
   };
 
-  // ── JD → Blueprint (Step 1 → 2) ─────────────────────────
-
-  const handleGenerateBlueprint = async () => {
-    if (!jd.trim()) { toast.error("Paste a job description first"); return; }
-    setBlueprintLoading(true);
-    setJdKeywords(extractKeywords(jd));
-    try {
-      const d = await api.generateResumeBlueprint(jd);
-      setBlueprint(d.blueprint || {});
-      goToStep("blueprint");
-    } catch {
-      toast.error("Failed to generate blueprint");
-    } finally {
-      setBlueprintLoading(false);
-    }
-  };
-
-  // ── Blueprint → Generate (Step 2 → 3) ───────────────────
+  // ── Full Generate Flow (Step 1 → 2 → 3 → 4) ────────────
 
   const handleGenerate = async () => {
     if (!jd.trim()) { toast.error("Paste a job description first"); return; }
-    setGenerating(true);
-    setGenStep(0);
-    setGenProgress(genSteps[0]);
 
-    // Start progress simulation
-    progressTimerRef.current = setInterval(() => {
-      setGenStep((prev) => {
-        const next = Math.min(prev + 1, genSteps.length - 1);
-        setGenProgress(genSteps[next]);
-        return next;
-      });
-    }, 800);
+    // ── Phase 1: Blueprint (auto-advance to Step 2) ──
+    setJdKeywords(extractKeywords(jd));
+    setBlueprintLoading(true);
+    goToStep("blueprint");
 
     try {
+      const bp = await api.generateResumeBlueprint(jd);
+      setBlueprint(bp.blueprint || {});
+      setBlueprintLoading(false);
+
+      // ── Phase 2: Generate with progress (auto-advance to Step 3) ──
+      setGenerating(true);
+      setGenStep(0);
+      setGenProgress(genSteps[0]);
+      goToStep("generate");
+
+      progressTimerRef.current = setInterval(() => {
+        setGenStep((prev) => {
+          const next = Math.min(prev + 1, genSteps.length - 1);
+          setGenProgress(genSteps[next]);
+          return next;
+        });
+      }, 800);
+
       const d = await api.generateResumeFull(jd, template);
       const r = d.resume as AnyRecord | null;
       setResume(r);
@@ -240,14 +234,15 @@ export default function ResumeStudio() {
         setEditableSections(sections);
       }
 
-      // Clear timer and jump to edit
+      // Clear timer and land on Edit
       if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-      setGenProgress("Complete!");
       toast.success("Resume generated!");
       loadVersions();
       goToStep("edit");
     } catch {
       if (progressTimerRef.current) clearInterval(progressTimerRef.current);
+      setBlueprintLoading(false);
+      setGenerating(false);
       toast.error("Failed to generate resume");
     } finally {
       setGenerating(false);
@@ -601,21 +596,15 @@ export default function ResumeStudio() {
         <Button variant="ghost" size="sm" onClick={() => setShowHistory(!showHistory)} icon={<History className="h-4 w-4" />}>
           {showHistory ? "Hide History" : "Version History"}
         </Button>
-        <div className="flex gap-3">
-          {jd.trim().length >= 20 && (
-            <Button onClick={handleGenerateBlueprint} loading={blueprintLoading} variant="secondary" icon={<Search className="h-4 w-4" />}>
-              Generate Strategy
-            </Button>
-          )}
-          <Button
-            onClick={handleGenerate}
-            loading={generating}
-            icon={<Sparkles className="h-4 w-4" />}
-            disabled={jd.trim().length < 20}
-          >
-            Generate Resume
-          </Button>
-        </div>
+        <Button
+          onClick={handleGenerate}
+          loading={generating || blueprintLoading}
+          icon={<Sparkles className="h-4 w-4" />}
+          disabled={jd.trim().length < 20}
+          size="lg"
+        >
+          Generate Resume
+        </Button>
       </div>
 
       {/* History panel */}
@@ -656,13 +645,26 @@ export default function ResumeStudio() {
   // ── Render: Step 2 — Blueprint ──────────────────────────
 
   const renderBlueprintStep = () => {
-    if (!blueprint) {
+    if (!blueprint || blueprintLoading) {
       return (
-        <div className="text-center py-12">
-          <p className="text-text-secondary">Generate a strategy blueprint first</p>
-          <Button className="mt-4" onClick={() => goToStep("input")} icon={<ChevronLeft className="h-4 w-4" />}>
-            Back to Input
-          </Button>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center space-y-6 max-w-md">
+            <div className="flex justify-center">
+              <div className="relative">
+                <Loader2 className="h-14 w-14 animate-spin text-brand-600" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Search className="h-5 w-5 text-brand-600" />
+                </div>
+              </div>
+            </div>
+            <div className="h-1.5 rounded-full bg-surface-2 overflow-hidden">
+              <div className="h-full rounded-full bg-brand-500 animate-pulse" style={{ width: "60%" }} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-text-primary">Analyzing job description...</p>
+              <p className="text-xs text-text-tertiary">Extracting requirements, skills, and strategy</p>
+            </div>
+          </div>
         </div>
       );
     }
@@ -728,52 +730,80 @@ export default function ResumeStudio() {
 
   // ── Render: Step 3 — Generating (Progress) ──────────────
 
-  const renderGenerateStep = () => (
-    <div className="flex items-center justify-center py-20">
-      <div className="text-center space-y-6 max-w-md">
-        <div className="flex justify-center">
-          <div className="relative">
-            <Loader2 className="h-12 w-12 animate-spin text-brand-600" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-bold text-brand-600">{Math.round((genStep / (genSteps.length - 1)) * 100)}%</span>
+  const renderGenerateStep = () => {
+    const pct = Math.round((genStep / (genSteps.length - 1)) * 100);
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="text-center space-y-8 max-w-md w-full">
+          {/* Animated icon */}
+          <div className="flex justify-center">
+            <div className="relative">
+              <div className="absolute inset-0 h-16 w-16 rounded-full bg-brand-500/20 animate-ping" />
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-950">
+                <Sparkles className="h-7 w-7 text-brand-600" />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Progress bar */}
-        <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-brand-500 transition-all duration-500 ease-out"
-            style={{ width: `${(genStep / (genSteps.length - 1)) * 100}%` }}
-          />
-        </div>
+          {/* Percentage */}
+          <div>
+            <p className="text-4xl font-bold text-brand-600">{pct}%</p>
+            <p className="text-sm text-text-secondary mt-1">{genProgress}</p>
+          </div>
 
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-text-primary">Generating your resume...</p>
-          <p className="text-xs text-text-tertiary">{genProgress}</p>
-        </div>
-
-        <div className="space-y-1.5 text-left">
-          {genSteps.map((s, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs">
-              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
-                i < genStep ? "bg-green-500" :
-                i === genStep ? "bg-brand-500 animate-pulse" :
-                "bg-surface-2"
-              }`}>
-                {i < genStep ? (
-                  <Check className="h-2.5 w-2.5 text-white" />
-                ) : (
-                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                )}
-              </span>
-              <span className={i <= genStep ? "text-text-primary" : "text-text-tertiary"}>{s}</span>
+          {/* Progress bar with stripes */}
+          <div className="space-y-2">
+            <div className="h-3 rounded-full bg-surface-2 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden"
+                style={{
+                  width: `${pct}%`,
+                  background: `linear-gradient(90deg, #7c3aed, #6366f1, #8b5cf6)`,
+                }}
+              >
+                <div className="absolute inset-0" style={{
+                  background: `repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(255,255,255,0.15) 8px, rgba(255,255,255,0.15) 16px)`,
+                }} />
+              </div>
             </div>
-          ))}
+            <div className="flex justify-between text-2xs text-text-tertiary">
+              <span>Starting</span>
+              <span>Almost done</span>
+            </div>
+          </div>
+
+          {/* Step checklist */}
+          <div className="card p-4 space-y-2 text-left max-w-sm mx-auto">
+            <p className="text-2xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">Pipeline Progress</p>
+            {genSteps.map((s, i) => (
+              <div key={i} className="flex items-center gap-3 text-xs">
+                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all ${
+                  i < genStep ? "bg-green-500 text-white" :
+                  i === genStep ? "bg-brand-600 text-white ring-2 ring-brand-300 ring-offset-2 ring-offset-surface-0" :
+                  "bg-surface-2 text-text-tertiary"
+                }`}>
+                  {i < genStep ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-current" />
+                  )}
+                </span>
+                <span className={`${i <= genStep ? "text-text-primary font-medium" : "text-text-tertiary"}`}>{s}</span>
+                {i === genStep && (
+                  <span className="ml-auto">
+                    <span className="flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-brand-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500" />
+                    </span>
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // ── Render: Step 4 — Edit ───────────────────────────────
 
