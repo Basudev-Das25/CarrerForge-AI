@@ -99,6 +99,20 @@ class ApiClient {
     });
   }
 
+  // ── Keywords ────────────────────────────────────────────
+
+  async extractKeywords(text: string) {
+    return this.request<{
+      must_include: string[];
+      technologies: string[];
+      nice_to_have: string[];
+      all_keywords: string[];
+    }>("/keywords/extract", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    });
+  }
+
   // ── Education ───────────────────────────────────────────
 
   async listEducation() {

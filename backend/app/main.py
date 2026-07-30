@@ -20,6 +20,7 @@ from app.routers import (
     diagnostics,
     documents,
     jobs,
+    keywords,
     knowledge,
     profile,
     resume_generator,
@@ -145,6 +146,7 @@ app.include_router(ats_intelligence.router, prefix="/api/v1/ats-intelligence", t
 app.include_router(updates.router, prefix="/api/v1/updates", tags=["updates"])
 app.include_router(backup.router, prefix="/api/v1/backup", tags=["backup"])
 app.include_router(diagnostics.router, prefix="/api/v1/diagnostics", tags=["diagnostics"])
+app.include_router(keywords.router, prefix="/api/v1/keywords", tags=["keywords"])
 
 
 @app.get("/")

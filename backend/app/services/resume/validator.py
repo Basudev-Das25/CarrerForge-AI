@@ -170,6 +170,28 @@ class ResumeValidator:
                 suggestion="All bullets should trace back to candidate evidence.",
             ))
 
+        # Also check for too much inferred/AI-generated content without clear evidence ties
+        report.checks_performed.append("inferred_content")
+        total_bullets = 0
+        ai_bullets = 0
+        for section in resume.get("sections", []):
+            for item in section.get("items", []):
+                total_bullets += 1
+                meta = item.get("metadata", {})
+                source = meta.get("evidence_source", "")
+                if source == "ai_generated" or source.endswith("_ai"):
+                    ai_bullets += 1
+
+        if total_bullets > 0:
+            ai_ratio = ai_bullets / total_bullets
+            if ai_ratio > 0.3:
+                report.issues.append(ValidationIssue(
+                    severity="error",
+                    category="too_much_inferred_content",
+                    message=f"{ai_bullets}/{total_bullets} bullet(s) ({ai_ratio:.0%}) are AI-generated without direct evidence ties. Maximum allowed is 30%.",
+                    suggestion="Rewrite AI-generated bullets to reference specific evidence highlights from your profile.",
+                ))
+
     def _check_keyword_coverage(self, resume: dict, report: ValidationReport):
         """Check ATS keyword coverage."""
         if not self.target_keywords:

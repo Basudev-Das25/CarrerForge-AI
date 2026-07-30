@@ -87,6 +87,46 @@ function extractKeywords(text: string): string[] {
   return [...new Set(words.filter((w) => w.length > 2 && !stopWords.has(w)))].slice(0, 40);
 }
 
+// ── Synonym map for ATS keyword matching ─────────────────────
+
+const TECH_SYNONYMS: Record<string, string[]> = {
+  "k8s": ["kubernetes"],
+  "ml": ["machine learning"],
+  "ai": ["artificial intelligence"],
+  "react": ["react.js", "reactjs"],
+  "node": ["node.js", "nodejs"],
+  "aws": ["amazon web services", "amazon web service"],
+  "gcp": ["google cloud platform"],
+  "azure": ["microsoft azure"],
+  "js": ["javascript"],
+  "ts": ["typescript"],
+  "db": ["database"],
+  "devops": ["dev ops", "development operations"],
+  "cicd": ["ci/cd", "continuous integration", "continuous delivery"],
+  "ux": ["user experience"],
+  "ui": ["user interface"],
+  "postgres": ["postgresql"],
+  "mern": ["mongodb", "express", "react", "node.js"],
+  "full stack": ["fullstack", "full-stack"],
+  "microservice": ["microservices"],
+};
+
+function expandSynonyms(keywords: string[]): string[] {
+  const expanded = new Set(keywords.map(k => k.toLowerCase()));
+  for (const kw of keywords) {
+    const lower = kw.toLowerCase();
+    const synonyms = TECH_SYNONYMS[lower];
+    if (synonyms) {
+      for (const syn of synonyms) expanded.add(syn);
+    }
+    // Also reverse-lookup: if any synonym maps TO this keyword
+    for (const [key, vals] of Object.entries(TECH_SYNONYMS)) {
+      if (vals.includes(lower)) expanded.add(key);
+    }
+  }
+  return [...expanded];
+}
+
 // ── Score Color Helper ───────────────────────────────────────
 
 function scoreColor(score: number): string {
@@ -825,7 +865,8 @@ export default function ResumeStudio() {
     const allText = editableSections
       .flatMap((s) => (s.items || []).map((i: AnyRecord) => (i.text || "").toLowerCase()))
       .join(" ");
-    const matchedKeywords = jdKeywords.filter((kw) => allText.includes(kw.toLowerCase()));
+    const expandedKeywords = expandSynonyms(jdKeywords);
+    const matchedKeywords = expandedKeywords.filter((kw) => allText.includes(kw.toLowerCase()));
     const matchRate = jdKeywords.length > 0 ? Math.round((matchedKeywords.length / jdKeywords.length) * 100) : 0;
 
     return (
@@ -854,9 +895,27 @@ export default function ResumeStudio() {
               </div>
 
               <div className="space-y-2">
-                {(section.items || []).map((item: AnyRecord, ii: number) => (
+                {(section.items || []).map((item: AnyRecord, ii: number) => {
+                  const renderProvenanceBadge = (it: AnyRecord) => {
+                    const src = it.evidence_source || it.metadata?.evidence_source || "";
+                    const provenance = it.provenance_highlights || it.metadata?.provenance_highlights as string[] | undefined;
+
+                    if (src === "from profile" || src === "education" || src === "skill" || src === "certificate" || src === "language" || src === "social_link") {
+                      return <span title={provenance?.join(", ")} className="text-2xs text-green-600 shrink-0 font-medium">Profile</span>;
+                    }
+                    if (src === "ai_generated" || src.endsWith("_ai")) {
+                      return <span className="text-2xs text-amber-600 shrink-0 font-medium">AI</span>;
+                    }
+                    if (provenance && provenance.length > 0) {
+                      return <span className="text-2xs text-blue-600 shrink-0 font-medium">Refined</span>;
+                    }
+                    return null;
+                  };
+
+                  return (
                   <div key={item._id || ii} className="group flex items-start gap-2">
                     <span className="text-brand-500 mt-2 shrink-0">•</span>
+                    {renderProvenanceBadge(item)}
                     <input
                       value={item.text || ""}
                       onChange={(e) => updateBullet(si, ii, e.target.value)}
@@ -870,7 +929,8 @@ export default function ResumeStudio() {
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               <button
@@ -1183,7 +1243,7 @@ export default function ResumeStudio() {
                       )}
                     </div>
                   ))}
-                </div>
+              </div>
               )}
             </div>
 
