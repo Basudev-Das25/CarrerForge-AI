@@ -76,7 +76,7 @@ interface ATSReport {
 // ── Helper: simple keyword extraction ────────────────────────
 
 function extractKeywords(text: string): string[] {
-  const words = text.toLowerCase().split(/[\s,;()\[\]{}]+/);
+  const words = text.toLowerCase().split(/[\s,;(){}[\]]+/);
   const stopWords = new Set([
     "the","and","for","with","this","that","from","will","have","are","was",
     "were","been","being","can","may","our","your","their","its","who","what",
@@ -178,7 +178,7 @@ export default function ResumeStudio() {
     try {
       const d = await api.listResumeVersions();
       setVersions(d.versions || []);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   // ── Step Navigation ─────────────────────────────────────

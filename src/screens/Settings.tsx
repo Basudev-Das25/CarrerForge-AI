@@ -129,6 +129,7 @@ export default function Settings() {
     loadResumeDefaults();
     loadVersion();
     loadUiSettings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Track system theme changes

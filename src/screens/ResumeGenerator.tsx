@@ -74,7 +74,7 @@ export default function ResumeGenerator() {
       const d = await api.listResumeTemplates();
       setTemplates(d.templates || []);
       if (d.templates?.length > 0) setSelectedTemplate(d.templates[0]);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const loadTemplateTheme = async (name: string) => {
@@ -90,7 +90,7 @@ export default function ResumeGenerator() {
     try {
       const d = await api.listResumeVersions();
       setVersions(d.versions || []);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handleTemplateSelect = (name: string) => {

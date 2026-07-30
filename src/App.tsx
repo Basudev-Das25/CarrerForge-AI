@@ -117,7 +117,7 @@ function App() {
             setBackendReady(true);
             return;
           }
-        } catch (err: any) {
+        } catch {
           // Tauri command failed or not available, try direct API health check
           try {
             const resp = await fetch("http://127.0.0.1:8000/api/v1/health");

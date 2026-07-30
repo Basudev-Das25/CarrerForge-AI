@@ -56,7 +56,7 @@ export default function ATSDashboard() {
     try {
       const d = await api.listAtsReports();
       setReports(d.reports || []);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handleAnalyze = async () => {

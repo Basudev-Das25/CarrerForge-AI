@@ -65,12 +65,11 @@ export default function UpdateSettingsScreen() {
         api.getUpdateHistory(),
         api.getUpdateChannels(),
       ]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSettings(s as any);
       setCurrentVersion((v as any).version);
       setHistory((h.updates as any) || []);
       setChannels((ch as any).channels || []);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handleCheck = async () => {

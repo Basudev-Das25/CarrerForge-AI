@@ -7,7 +7,8 @@ describe("cn", () => {
   });
 
   it("should handle conditional classes", () => {
-    expect(cn("base", false && "hidden", "visible")).toBe("base visible");
+    expect(cn("base", undefined, "visible")).toBe("base visible");
+    expect(cn("base", "", "visible")).toBe("base visible");
   });
 
   it("should handle undefined values", () => {
