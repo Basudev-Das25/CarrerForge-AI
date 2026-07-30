@@ -25,6 +25,7 @@ target/
 # ===========================
 src-tauri/target/
 src-tauri/binaries/
+src-tauri/tauri-updater-private.key
 
 # ===========================
 # Environment & Secrets

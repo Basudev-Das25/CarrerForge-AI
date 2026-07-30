@@ -2,8 +2,11 @@
 Uses the new AI Orchestrator service layer.
 """
 
+import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+
+logger = structlog.get_logger("careerforge.routers.ai")
 
 from app.services.ai.orchestrator import orchestrator
 from app.services.ai.providers.base import ChatMessage, MessageRole
@@ -55,7 +58,8 @@ async def chat(request: ChatRequest):
             "finish_reason": response.finish_reason,
         }
     except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        logger.error("ai.chat_error", error=str(e))
+        raise HTTPException(status_code=502, detail="AI provider error")
 
 
 @router.post("/embed")

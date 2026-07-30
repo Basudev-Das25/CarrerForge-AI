@@ -93,9 +93,6 @@ class DiagnosticsService:
             ],
             "providers": providers,
             "templates": templates,
-            "data_dir": str(self._data_dir),
-            "data_dir_exists": self._data_dir.exists(),
-            "data_dir_writable": os.access(str(self._data_dir), os.W_OK) if self._data_dir.exists() else False,
         }
 
     # ── Health Checks ─────────────────────────────────────

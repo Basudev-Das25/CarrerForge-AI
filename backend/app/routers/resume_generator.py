@@ -100,7 +100,7 @@ async def render_template(name: str, resume: dict):
         typst = engine.render_to_typst(resume, name)
         return {"typst": typst, "template": name}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Render failed: {e}")
+        raise HTTPException(status_code=400, detail="Render failed")
 
 
 # ── Version History ─────────────────────────────────────────
