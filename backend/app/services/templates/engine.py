@@ -350,20 +350,123 @@ class TemplateEngine:
 
     @staticmethod
     def compile_typst(typst_source: str, output_dir: str | None = None) -> CompileResult:
-        """Compile Typst source to PDF. Returns the compilation result."""
+        """Compile Typst source to PDF. Returns the compilation result.
+        
+        Uses the Python typst library if available, falling back to
+        the system-installed typst binary.
+        """
         import subprocess
         import shutil
-
-        # Check if typst is available
+        
+        # Try Python typst library first (bundled, no system dependency)
+        try:
+            import typst
+            return TemplateEngine._compile_with_library(typst_source, output_dir)
+        except ImportError:
+            pass
+        
+        # Fall back to system binary
         typst_cmd = shutil.which("typst")
         if not typst_cmd:
             return CompileResult(
                 success=False,
                 typst_source=typst_source,
-                errors=[{"message": "Typst compiler not installed. Install from https://typst.app"}],
+                errors=[{"message": "Typst compiler not installed. Install the 'typst' pip package or install Typst from https://typst.app"}],
+            )
+        
+        return TemplateEngine._compile_with_binary(typst_source, output_dir, typst_cmd)
+
+    @staticmethod
+    def validate_typst(typst_source: str) -> list[dict[str, Any]]:
+        """Validate Typst source for syntax errors without full compilation."""
+        errors = []
+        lines = typst_source.split("\n")
+        depth = 0
+
+        for i, line in enumerate(lines, 1):
+            stripped = line.strip()
+
+            # Check bracket matching
+            for ch in stripped:
+                if ch == "[":
+                    depth += 1
+                elif ch == "]":
+                    depth -= 1
+                    if depth < 0:
+                        errors.append({"line": i, "message": "Unexpected closing bracket ']'"})
+
+            # Check for common issues
+            if "#if" in stripped and ":" not in stripped:
+                errors.append({"line": i, "message": "Missing ':' after #if condition"})
+
+        if depth > 0:
+            errors.append({"line": len(lines), "message": f"Unclosed bracket(s): {depth} unmatched '['"})
+
+        return errors
+
+    @staticmethod
+    def _default_typst() -> str:
+        """Return a default Typst template."""
+        return """// CareerForge AI — Default Resume Template
+#set page(paper: "us-letter", margin: (x: 0.7in, y: 0.5in))
+#set text(font: ("Helvetica", "Arial"), size: 10pt)
+
+#align(center)[
+  #text(size: 20pt, weight: "bold")[CANDIDATE NAME]
+  #v(4pt)
+  #text(size: 9pt)[email | phone | location]
+]
+
+#line(length: 100%)
+#v(8pt)
+
+#text(size: 11pt, weight: "bold")[Section]
+#line(length: 100%)
+- Bullet point here
+"""
+
+    @staticmethod
+    def _compile_with_library(typst_source: str, output_dir: str | None = None) -> CompileResult:
+        """Compile Typst source using the Python typst library."""
+        try:
+            import typst
+            import io
+
+            # Compile to PDF bytes
+            pdf_bytes = typst.compile(typst_source)
+
+            # Save to output directory or temp
+            if output_dir:
+                out_path = Path(output_dir)
+                out_path.mkdir(parents=True, exist_ok=True)
+                pdf_path = out_path / "resume.pdf"
+                pdf_path.write_bytes(pdf_bytes)
+            else:
+                with tempfile.TemporaryDirectory(prefix="careerforge_") as tmpdir:
+                    pdf_path = Path(tmpdir) / "resume.pdf"
+                    pdf_path.write_bytes(pdf_bytes)
+
+            # Estimate page count (typst library doesn't expose page count directly)
+            page_count = max(1, len(pdf_bytes) // 5000)  # rough estimate
+
+            return CompileResult(
+                success=True,
+                typst_source=typst_source,
+                pdf_path=str(pdf_path) if output_dir else str(pdf_path),
+                page_count=page_count,
+            )
+        except Exception as e:
+            return CompileResult(
+                success=False,
+                typst_source=typst_source,
+                errors=[{"message": f"Typst library compilation error: {e}"}],
             )
 
-        # Create temp directory for compilation
+    @staticmethod
+    def _compile_with_binary(typst_source: str, output_dir: str | None, typst_cmd: str) -> CompileResult:
+        """Compile Typst source using the system-installed typst binary."""
+        import subprocess
+
         with tempfile.TemporaryDirectory(prefix="careerforge_") as tmpdir:
             tmpdir_path = Path(tmpdir)
             typst_file = tmpdir_path / "resume.typ"
@@ -382,7 +485,6 @@ class TemplateEngine:
                 )
 
                 if result.returncode != 0:
-                    # Parse error output
                     errors = []
                     for line in result.stderr.strip().split("\n"):
                         if line.strip():
@@ -435,55 +537,6 @@ class TemplateEngine:
                     typst_source=typst_source,
                     errors=[{"message": f"Compilation error: {e}"}],
                 )
-
-    @staticmethod
-    def validate_typst(typst_source: str) -> list[dict[str, Any]]:
-        """Validate Typst source for syntax errors without full compilation."""
-        errors = []
-        lines = typst_source.split("\n")
-        depth = 0
-
-        for i, line in enumerate(lines, 1):
-            stripped = line.strip()
-
-            # Check bracket matching
-            for ch in stripped:
-                if ch == "[":
-                    depth += 1
-                elif ch == "]":
-                    depth -= 1
-                    if depth < 0:
-                        errors.append({"line": i, "message": "Unexpected closing bracket ']'"})
-
-            # Check for common issues
-            if "#if" in stripped and ":" not in stripped:
-                errors.append({"line": i, "message": "Missing ':' after #if condition"})
-
-        if depth > 0:
-            errors.append({"line": len(lines), "message": f"Unclosed bracket(s): {depth} unmatched '['"})
-
-        return errors
-
-    @staticmethod
-    def _default_typst() -> str:
-        """Return a default Typst template."""
-        return """// CareerForge AI — Default Resume Template
-#set page(paper: "us-letter", margin: (x: 0.7in, y: 0.5in))
-#set text(font: ("Helvetica", "Arial"), size: 10pt)
-
-#align(center)[
-  #text(size: 20pt, weight: "bold")[CANDIDATE NAME]
-  #v(4pt)
-  #text(size: 9pt)[email | phone | location]
-]
-
-#line(length: 100%)
-#v(8pt)
-
-#text(size: 11pt, weight: "bold")[Section]
-#line(length: 100%)
-- Bullet point here
-"""
 
 
 def _esc(text: str) -> str:

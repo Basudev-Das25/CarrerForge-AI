@@ -2,8 +2,6 @@
 
 import pytest
 
-from app.providers.base import ChatMessage, ChatResponse, MessageRole
-
 
 @pytest.mark.asyncio
 async def test_health_endpoint(client):
