@@ -36,7 +36,7 @@ const NAV_ITEMS = [
 ] as const;
 
 const BOTTOM_ITEMS = [
-  { to: "/resume", icon: Sparkles, label: "Resume Generator" },
+  { to: "/resume", icon: Sparkles, label: "Resume Studio" },
   { to: "/ats", icon: Target, label: "ATS Intelligence" },
   { to: "/documents", icon: FolderOpen, label: "Document Vault" },
   { to: "/settings/updates", icon: ArrowUpCircle, label: "Updates" },
