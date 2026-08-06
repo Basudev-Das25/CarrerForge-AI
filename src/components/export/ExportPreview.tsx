@@ -6,7 +6,7 @@
  * PDF is rendered via pdfjs-dist to canvas thumbnails.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   X, Download, Loader2, FileText, FileCode, File, 
   AlertTriangle, Copy, Check,
@@ -96,30 +96,29 @@ function renderJson(resume: AnyRecord, template: string): string {
 
 // ── PDF renderer via pdfjs-dist ──
 
-async function renderPdfToCanvases(blob: Blob): Promise<HTMLCanvasElement[]> {
+async function renderPdfToDataUrls(blob: Blob): Promise<string[]> {
   // Dynamic import so pdfjs worker is code-split
   const pdfjs = await import("pdfjs-dist");
   const workerModule = await import("pdfjs-dist/build/pdf.worker.mjs?url");
   pdfjs.GlobalWorkerOptions.workerSrc = workerModule.default;
+  // Avoid eval-based code paths (strict CSP) and force main-thread fallback
+  // if the worker cannot load, so rendering never silently blanks out.
+  (pdfjs as any).isEvalSupported = false;
 
   const arrayBuffer = await blob.arrayBuffer();
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
 
-  const canvases: HTMLCanvasElement[] = [];
+  const images: string[] = [];
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 1.4 });
+    const viewport = page.getViewport({ scale: 2 });
     const canvas = document.createElement("canvas");
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    canvas.className = "w-full h-auto rounded-lg border border-border bg-white shadow-elevation-1 mb-3";
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      await page.render({ canvas: canvas, canvasContext: ctx, viewport } as any).promise;
-      canvases.push(canvas);
-    }
+    await page.render({ canvas, viewport } as any).promise;
+    images.push(canvas.toDataURL("image/png"));
   }
-  return canvases;
+  return images;
 }
 
 // ── Main Component ───────────────────────────────────────────
@@ -135,8 +134,8 @@ export default function ExportPreview({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [textContent, setTextContent] = useState("");
+  const [pageImages, setPageImages] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
-  const pdfContainerRef = useRef<HTMLDivElement>(null);
 
   // ── Load preview content on mount / format change ────────
   useEffect(() => {
@@ -144,17 +143,15 @@ export default function ExportPreview({
     setLoading(true);
     setError(null);
     setTextContent("");
-    if (pdfContainerRef.current) pdfContainerRef.current.innerHTML = "";
+    setPageImages([]);
 
     const load = async () => {
       try {
         if (format === "pdf") {
           const blob = await api.previewPdf(resume, template);
           if (cancelled) return;
-          const canvases = await renderPdfToCanvases(blob);
-          if (cancelled || !pdfContainerRef.current) return;
-          pdfContainerRef.current.innerHTML = "";
-          canvases.forEach((c) => pdfContainerRef.current?.appendChild(c));
+          const images = await renderPdfToDataUrls(blob);
+          if (!cancelled) setPageImages(images);
         } else if (format === "typst") {
           const d = await api.exportResumeTypst(resume, template);
           if (!cancelled) setTextContent(d.typst || "");
@@ -221,8 +218,25 @@ export default function ExportPreview({
     }
 
     if (format === "pdf") {
+      if (pageImages.length === 0) {
+        return (
+          <div className="flex flex-col items-center justify-center py-16">
+            <AlertTriangle className="h-8 w-8 text-amber-500" />
+            <p className="text-sm text-text-secondary mt-3 text-center max-w-sm">No pages were rendered.</p>
+          </div>
+        );
+      }
       return (
-        <div ref={pdfContainerRef} className="bg-surface-2 p-4 rounded-lg overflow-y-auto max-h-[60vh]" />
+        <div className="bg-surface-2 p-4 rounded-lg overflow-y-auto max-h-[60vh]">
+          {pageImages.map((src, i) => (
+            <img
+              key={i}
+              src={src}
+              alt={`Resume page ${i + 1}`}
+              className="w-full h-auto rounded-lg border border-border bg-white shadow-elevation-1 mb-3"
+            />
+          ))}
+        </div>
       );
     }
 
