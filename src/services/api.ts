@@ -5,7 +5,7 @@
 import type {
   User, Education, Experience, Project, Skill,
   Certificate, Achievement, Language, Publication,
-  Award, SocialLink,
+  Award, SocialLink, OriginalDocument,
 } from "@/types";
 
 const BASE_URL = "http://127.0.0.1:8000/api/v1";
@@ -296,7 +296,49 @@ class ApiClient {
   // ── Documents ───────────────────────────────────────────
 
   async listDocuments() {
-    return this.request<{ documents: unknown[]; total: number }>("/documents/");
+    return this.request<OriginalDocument[]>("/documents/");
+  }
+
+  async getDocument(id: string) {
+    return this.request<OriginalDocument>(`/documents/${id}`);
+  }
+
+  async uploadDocument(file: File, category?: string) {
+    const form = new FormData();
+    form.append("file", file);
+    if (category) form.append("category", category);
+    const resp = await fetch(`${this.baseUrl}/documents/upload`, {
+      method: "POST",
+      body: form,
+    });
+    if (!resp.ok) {
+      const error = await resp.json().catch(() => ({ detail: resp.statusText }));
+      throw new Error(error.detail || `HTTP ${resp.status}`);
+    }
+    return resp.json() as Promise<OriginalDocument>;
+  }
+
+  async uploadMultiple(files: File[], category?: string) {
+    const form = new FormData();
+    for (const f of files) form.append("files", f);
+    if (category) form.append("category", category);
+    const resp = await fetch(`${this.baseUrl}/documents/upload/multiple`, {
+      method: "POST",
+      body: form,
+    });
+    if (!resp.ok) {
+      const error = await resp.json().catch(() => ({ detail: resp.statusText }));
+      throw new Error(error.detail || `HTTP ${resp.status}`);
+    }
+    return resp.json() as Promise<{ uploaded: number; errors: number; results: Array<{ id: string; name: string; status: string }>; errors_detail: Array<{ name: string; error: string }> }>;
+  }
+
+  async deleteDocument(id: string) {
+    return this.request(`/documents/${id}`, { method: "DELETE" });
+  }
+
+  async countDocuments() {
+    return this.request<{ total: number }>("/documents/count");
   }
 
   async searchDocuments(query: string, topK: number = 5) {

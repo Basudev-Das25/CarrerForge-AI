@@ -17,6 +17,7 @@ const Awards = lazy(() => import("./screens/Awards"));
 const Links = lazy(() => import("./screens/Links"));
 const ResumeGenerator = lazy(() => import("./screens/ResumeGenerator"));
 const ResumeStudio = lazy(() => import("./screens/ResumeStudio"));
+const DocumentVault = lazy(() => import("./screens/DocumentVault"));
 const ATSDashboard = lazy(() => import("./screens/ATSDashboard"));
 const UpdateSettings = lazy(() => import("./screens/UpdateSettings"));
 const Settings = lazy(() => import("./screens/Settings"));
@@ -200,7 +201,7 @@ function App() {
             <Route path="resume" element={<ResumeStudio />} />
             <Route path="resume/legacy" element={<ResumeGenerator />} />
             <Route path="ats" element={<ATSDashboard />} />
-            <Route path="documents" element={<div className="p-8 text-text-secondary">Document Vault — coming soon</div>} />
+            <Route path="documents" element={<DocumentVault />} />
             <Route path="settings/updates" element={<UpdateSettings />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Feedback />} />
