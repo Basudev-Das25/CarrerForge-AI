@@ -16,6 +16,7 @@ import { api } from "@/services/api";
 import { Button } from "@/components/common/Button";
 import { EmptyState } from "@/components/common/EmptyState";
 import { toast } from "@/components/common/Toast";
+import ExportPreview, { type PreviewFormat } from "@/components/export/ExportPreview";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type AnyRecord = Record<string, any>;
@@ -36,6 +37,7 @@ type StepKey = (typeof STEPS)[number]["key"];
 // ── Export Formats ───────────────────────────────────────────
 
 const EXPORT_FORMATS = [
+  { id: "pdf", label: "PDF", ext: ".pdf" },
   { id: "typst", label: "Typst", ext: ".typ" },
   { id: "text", label: "Plain Text", ext: ".txt" },
   { id: "markdown", label: "Markdown", ext: ".md" },
@@ -189,8 +191,8 @@ export default function ResumeStudio() {
   const [acceptedSuggestions, setAcceptedSuggestions] = useState<Set<number>>(new Set());
 
   // ── Export ──────────────────────────────────────────────
-  const [exportFormat, setExportFormat] = useState("typst");
-  const [exporting, setExporting] = useState(false);
+  const [exportFormat, setExportFormat] = useState<PreviewFormat>("typst");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // ── Keyword extraction (for ATS) ────────────────────────
   const [jdKeywords, setJdKeywords] = useState<string[]>([]);
@@ -455,43 +457,58 @@ export default function ResumeStudio() {
     const currentResume = resume || buildResumeFromSections();
     if (!currentResume?.sections?.length) { toast.error("No resume to export"); return; }
 
-    setExporting(true);
     try {
-      let content = "";
       let filename = "";
-      let mime = "text/plain";
+      let blob: Blob;
 
-      if (exportFormat === "typst") {
-        const d = await api.exportResumeTypst(currentResume, template);
-        content = d.typst;
-        filename = `resume.typ`;
-      } else if (exportFormat === "text") {
-        const d = await api.exportResumeText(currentResume);
-        content = d.text;
-        filename = `resume.txt`;
-      } else if (exportFormat === "markdown") {
-        const d = await api.exportResumeMarkdown(currentResume);
-        content = d.markdown;
-        filename = `resume.md`;
+      if (exportFormat === "pdf") {
+        blob = await api.previewPdf(currentResume, template);
+        filename = `resume.pdf`;
       } else {
-        content = JSON.stringify({ resume: currentResume, blueprint, template }, null, 2);
-        filename = `resume.json`;
-        mime = "application/json";
+        let content = "";
+        let mime = "text/plain";
+
+        if (exportFormat === "typst") {
+          const d = await api.exportResumeTypst(currentResume, template);
+          content = d.typst;
+          filename = `resume.typ`;
+        } else if (exportFormat === "text") {
+          const d = await api.exportResumeText(currentResume);
+          content = d.text;
+          filename = `resume.txt`;
+        } else if (exportFormat === "markdown") {
+          const d = await api.exportResumeMarkdown(currentResume);
+          content = d.markdown;
+          filename = `resume.md`;
+        } else {
+          content = JSON.stringify({ resume: currentResume, blueprint, template }, null, 2);
+          filename = `resume.json`;
+          mime = "application/json";
+        }
+
+        blob = new Blob([content], { type: mime });
       }
 
-      const blob = new Blob([content], { type: mime });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
+      setPreviewOpen(false);
       toast.success(`Exported as ${exportFormat.toUpperCase()}`);
-    } catch {
-      toast.error("Export failed");
-    } finally {
-      setExporting(false);
+    } catch (e: any) {
+      toast.error(e?.message || "Export failed");
     }
+  };
+
+  // ── Open preview for a format ───────────────────────────
+
+  const handleOpenPreview = (format: PreviewFormat) => {
+    const currentResume = resume || buildResumeFromSections();
+    if (!currentResume?.sections?.length) { toast.error("No resume to preview"); return; }
+    setExportFormat(format);
+    setPreviewOpen(true);
   };
 
   // ── Load version from history ───────────────────────────
@@ -1196,17 +1213,15 @@ export default function ResumeStudio() {
           <>
             <div className="card space-y-4">
               <h3 className="section-title">Export Resume</h3>
-              <p className="section-description">Choose a format and download your resume</p>
+              <p className="section-description">Preview your resume in any format before downloading</p>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 {EXPORT_FORMATS.map((f) => (
                   <button
                     key={f.id}
-                    onClick={() => setExportFormat(f.id)}
-                    className={`card text-center p-4 transition-all ${
-                      exportFormat === f.id
-                        ? "ring-2 ring-brand-600 border-brand-600"
-                        : "hover:shadow-elevation-2"
+                    onClick={() => handleOpenPreview(f.id)}
+                    className={`card text-center p-4 transition-all hover:shadow-elevation-2 hover:ring-1 hover:ring-brand-300 ${
+                      exportFormat === f.id ? "ring-2 ring-brand-600 border-brand-600" : ""
                     }`}
                   >
                     <FileText className={`h-6 w-6 mx-auto mb-2 ${
@@ -1219,8 +1234,8 @@ export default function ResumeStudio() {
               </div>
 
               <div className="flex justify-center pt-2">
-                <Button onClick={handleExport} loading={exporting} size="lg" icon={<Download className="h-4 w-4" />}>
-                  Export as {EXPORT_FORMATS.find((f) => f.id === exportFormat)?.label}
+                <Button onClick={() => handleOpenPreview(exportFormat)} size="lg" icon={<Download className="h-4 w-4" />}>
+                  Preview & Export
                 </Button>
               </div>
             </div>
@@ -1291,6 +1306,18 @@ export default function ResumeStudio() {
 
       {/* Step Content */}
       {renderStepContent()}
+
+      {/* Export Preview Modal */}
+      {previewOpen && (
+        <ExportPreview
+          format={exportFormat}
+          resume={resume || buildResumeFromSections()}
+          template={template}
+          atsScore={atsReport?.overall_score ?? null}
+          onClose={() => setPreviewOpen(false)}
+          onDownload={handleExport}
+        />
+      )}
     </div>
   );
 }

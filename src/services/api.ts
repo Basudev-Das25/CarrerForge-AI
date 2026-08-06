@@ -448,6 +448,19 @@ class ApiClient {
     });
   }
 
+  async previewPdf(resume: Record<string, unknown>, template: string = "modern") {
+    const resp = await fetch(`${this.baseUrl}/resume/preview/pdf?template=${template}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(resume),
+    });
+    if (!resp.ok) {
+      const error = await resp.json().catch(() => ({ detail: resp.statusText }));
+      throw new Error(error.detail || `HTTP ${resp.status}`);
+    }
+    return resp.blob();
+  }
+
   async validateResumeTypst(resume: Record<string, unknown>, _template: string = "modern") {
     return this.request<{ valid: boolean; errors: Array<Record<string, unknown>> }>("/resume/validate-typst", {
       method: "POST",
