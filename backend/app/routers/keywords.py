@@ -16,7 +16,12 @@ class ExtractRequest(BaseModel):
 
 @router.post("/extract")
 async def extract_keywords(request: ExtractRequest):
-    """Extract keywords from a job description using statistical + semantic analysis."""
+    """Extract grounded keywords from a job description.
+
+    Uses LLM extraction when an AI provider is configured, otherwise
+    falls back to KeyBERT semantic scoring. Every returned keyword is
+    verified to appear verbatim in the job description.
+    """
     extractor = KeywordExtractor()
-    result = extractor.extract(request.text)
+    result = await extractor.extract_async(request.text)
     return result.to_dict()
