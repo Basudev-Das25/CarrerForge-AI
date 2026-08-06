@@ -54,9 +54,9 @@
 
 // ── Bullet Point ───────────────────────────────────────
 
-#let bullet(text) = {
+#let bullet(content) = {
   pad(left: 0pt)[
-    #text(size: 10pt, fill: rgb("#2d3748"))[• #h(4pt)#text(text)]
+    #text(size: 10pt, fill: rgb("#2d3748"))[• #h(4pt)#text(content)]
   ]
   v(1.5pt)
 }

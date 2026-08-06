@@ -161,7 +161,9 @@ def test_typst_escape_special_chars():
         "sections": [{"name": "Skills", "order": 0, "items": [{"text": "C# & .NET (100$)"}]}],
     }
     typst = TemplateEngine.render_to_typst(resume, "minimal")
-    assert "C#" not in typst  # Should be escaped
+    # Content must be preserved as a valid quoted Typst string literal
+    assert '"Escape Test & Co."' in typst
+    assert '"C# & .NET (100$)"' in typst
 
 
 def test_render_complex_resume():
