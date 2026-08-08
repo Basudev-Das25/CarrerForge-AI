@@ -1,3 +1,4 @@
+import React from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,7 +16,6 @@ import {
   BookOpen,
   Trophy,
   LinkIcon,
-  Target,
   ArrowUpCircle,
 } from "lucide-react";
 
@@ -35,15 +35,14 @@ const NAV_ITEMS = [
 ] as const;
 
 const BOTTOM_ITEMS = [
-  { to: "/resume", icon: Sparkles, label: "Resume Generator" },
-  { to: "/ats", icon: Target, label: "ATS Intelligence" },
+  { to: "/resume", icon: Sparkles, label: "Resume Studio" },
   { to: "/documents", icon: FolderOpen, label: "Document Vault" },
   { to: "/settings/updates", icon: ArrowUpCircle, label: "Updates" },
   { to: "/settings", icon: Settings, label: "Settings" },
   { to: "/help", icon: HelpCircle, label: "Help" },
 ] as const;
 
-export function Sidebar() {
+const Sidebar = React.memo(function Sidebar() {
   return (
     <aside className="flex w-64 flex-col border-r border-border bg-surface-1">
       {/* Logo */}
@@ -98,4 +97,6 @@ export function Sidebar() {
       </div>
     </aside>
   );
-}
+});
+
+export { Sidebar };

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+import tempfile
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -100,7 +103,7 @@ async def render_template(name: str, resume: dict):
         typst = engine.render_to_typst(resume, name)
         return {"typst": typst, "template": name}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Render failed: {e}")
+        raise HTTPException(status_code=400, detail="Render failed")
 
 
 # ── Version History ─────────────────────────────────────────
@@ -223,6 +226,24 @@ async def compile_resume(resume: dict, template: str = "modern"):
     typst = engine.render_to_typst(resume, template)
     result = engine.compile_typst(typst)
     return {"compile": result.to_dict(), "typst": typst}
+
+
+@router.post("/preview/pdf")
+async def preview_pdf(resume: dict, template: str = "modern"):
+    """Render resume to PDF and return the bytes for inline preview."""
+    engine = TemplateEngine()
+    typst = engine.render_to_typst(resume, template)
+    with tempfile.TemporaryDirectory(prefix="careerforge_preview_") as tmpdir:
+        result = engine.compile_typst(typst, output_dir=tmpdir)
+        if result.success and result.pdf_path:
+            pdf_bytes = Path(result.pdf_path).read_bytes()
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={"Content-Disposition": 'inline; filename="preview.pdf"'},
+            )
+        detail = result.errors[0].get("message") if result.errors else "PDF compilation failed"
+        raise HTTPException(status_code=422, detail=detail)
 
 
 @router.post("/validate-typst")

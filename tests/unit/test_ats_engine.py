@@ -165,6 +165,9 @@ def test_evidence_verification():
 
 def test_typst_escape():
     from app.services.templates.engine import _esc
-    assert _esc("Hello & World") == "Hello \\& World"
-    assert _esc("100%") == "100\\%"
-    assert _esc("$100") == "\\$100"
+    # _esc wraps in quotes and only escapes backslash + double-quote
+    assert _esc("Hello & World") == '"Hello & World"'
+    assert _esc("100%") == '"100%"'
+    assert _esc("$100") == '"$100"'
+    assert _esc('Say "hi"') == '"Say \\"hi\\""'
+    assert _esc("C:\\path") == '"C:\\\\path"'

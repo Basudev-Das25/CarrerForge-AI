@@ -1,10 +1,8 @@
 """Unit tests for the AI provider abstraction."""
 
 import pytest
-from unittest.mock import AsyncMock, patch
 
-from app.providers.base import AIProvider, ChatMessage, ChatResponse, MessageRole
-from app.providers.registry import get_provider, register_provider
+from app.services.ai.providers.base import AIProvider, ChatMessage, ChatResponse, MessageRole
 
 
 class DummyProvider(AIProvider):

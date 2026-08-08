@@ -65,12 +65,11 @@ export default function UpdateSettingsScreen() {
         api.getUpdateHistory(),
         api.getUpdateChannels(),
       ]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setSettings(s as any);
       setCurrentVersion((v as any).version);
       setHistory((h.updates as any) || []);
       setChannels((ch as any).channels || []);
-    } catch {}
+    } catch { /* ignore */ }
   };
 
   const handleCheck = async () => {
@@ -273,7 +272,7 @@ export default function UpdateSettingsScreen() {
           <p className="text-sm text-text-tertiary">No updates installed yet</p>
         ) : (
           <div className="space-y-2">
-            {history.map((entry, i) => (
+            {history.slice(0, 3).map((entry, i) => (
               <div key={i} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                 <div className="flex items-center gap-2">
                   {entry.success ? <CheckCircle className="h-4 w-4 text-green-500" /> : <XCircle className="h-4 w-4 text-red-500" />}
@@ -294,7 +293,7 @@ export default function UpdateSettingsScreen() {
           <div className="border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="badge badge-success text-xs">Latest</span>
-              <span className="font-semibold text-text-primary">v0.1.0</span>
+              <span className="font-semibold text-text-primary">v0.1.1</span>
               <span className="text-xs text-text-tertiary">July 22, 2026</span>
             </div>
             <ul className="text-sm text-text-secondary space-y-1">

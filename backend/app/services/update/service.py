@@ -160,7 +160,7 @@ class UpdateService:
     @staticmethod
     def get_current_version() -> dict[str, Any]:
         return {
-            "version": "0.1.0",
+            "version": "0.1.1",
             "build_number": 1,
             "platform": "windows",
             "architecture": "x86_64",

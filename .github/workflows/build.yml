@@ -60,4 +60,4 @@ jobs:
         run: |
           python -c "from app.config.settings import Settings; print('Settings OK')"
           python -c "from app.db.base import get_engine; print('DB engine OK')"
-          python -c "from app.providers.registry import ProviderRegistry; print('Provider registry OK')"
+          python -c "from app.services.ai.providers.base import AIProvider; print('AI provider base OK')"

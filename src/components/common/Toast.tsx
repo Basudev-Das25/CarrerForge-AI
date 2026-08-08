@@ -5,6 +5,8 @@
  * toast.error("Something went wrong");
  */
 
+import { useState, useEffect, useCallback } from "react";
+
 type ToastType = "success" | "error" | "info" | "warning";
 
 interface Toast {
@@ -39,6 +41,8 @@ export const toast = {
   warning: (message: string) => add("warning", message),
   subscribe: (listener: (toasts: Toast[]) => void) => {
     listeners.push(listener);
+    // Immediately call the listener with the current toasts
+    listener([...toasts]);
     return () => {
       listeners = listeners.filter((l) => l !== listener);
     };
@@ -46,13 +50,43 @@ export const toast = {
   dismiss: remove,
 };
 
-export function ToastContainer() {
-  // This is a simple hook-based container
-  // In a real app you'd use a useState hook here
-  return null; // Will be wired up with a proper hook below
+export function useToasts() {
+  const [currentToasts, setCurrentToasts] = useState<Toast[]>(toasts);
+
+  useEffect(() => {
+    const unsubscribe = toast.subscribe(setCurrentToasts);
+    return unsubscribe;
+  }, []);
+
+  const dismiss = useCallback((id: string) => {
+    remove(id);
+  }, []);
+
+  return { toasts: currentToasts, dismiss };
 }
 
-export function useToasts() {
-  // This is a simplified version — in production, use useState + useEffect
-  return { toasts, dismiss: remove };
+export function ToastContainer() {
+  const { toasts, dismiss } = useToasts();
+  if (toasts.length === 0) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      {toasts.map((t) => (
+        <div
+          key={t.id}
+          className={`rounded-lg px-4 py-3 text-sm shadow-lg transition-all ${
+            t.type === "success" ? "bg-green-600 text-white" :
+            t.type === "error" ? "bg-red-600 text-white" :
+            t.type === "warning" ? "bg-amber-500 text-white" :
+            "bg-surface-2 text-text-primary"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <span>{t.message}</span>
+            <button onClick={() => dismiss(t.id)} className="text-current opacity-70 hover:opacity-100">&times;</button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }

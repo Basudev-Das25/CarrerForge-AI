@@ -13,8 +13,6 @@ import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { toast } from "@/components/common/Toast";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 const PROVIDERS = [
   { id: "openai", name: "OpenAI", desc: "GPT-4o, GPT-4o-mini", key_field: "OPENAI_API_KEY" },
   { id: "claude", name: "Claude", desc: "Claude Sonnet, Opus", key_field: "ANTHROPIC_API_KEY" },

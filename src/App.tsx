@@ -1,24 +1,25 @@
 import { Routes, Route } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, lazy } from "react";
 import { AppLayout } from "./components/layout/AppLayout";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import Onboarding from "./screens/Onboarding/index";
-import Dashboard from "./screens/Dashboard";
-import Profile from "./screens/Profile";
-import Education from "./screens/Education";
-import Experience from "./screens/Experience";
-import Projects from "./screens/Projects";
-import Skills from "./screens/Skills";
-import Certificates from "./screens/Certificates";
-import Achievements from "./screens/Achievements";
-import Languages from "./screens/Languages";
-import Publications from "./screens/Publications";
-import Awards from "./screens/Awards";
-import Links from "./screens/Links";
-import ResumeGenerator from "./screens/ResumeGenerator";
-import ATSDashboard from "./screens/ATSDashboard";
-import UpdateSettings from "./screens/UpdateSettings";
-import Feedback from "./screens/Feedback";
+const Dashboard = lazy(() => import("./screens/Dashboard"));
+const Profile = lazy(() => import("./screens/Profile"));
+const Education = lazy(() => import("./screens/Education"));
+const Experience = lazy(() => import("./screens/Experience"));
+const Projects = lazy(() => import("./screens/Projects"));
+const Skills = lazy(() => import("./screens/Skills"));
+const Certificates = lazy(() => import("./screens/Certificates"));
+const Achievements = lazy(() => import("./screens/Achievements"));
+const Languages = lazy(() => import("./screens/Languages"));
+const Publications = lazy(() => import("./screens/Publications"));
+const Awards = lazy(() => import("./screens/Awards"));
+const Links = lazy(() => import("./screens/Links"));
+const ResumeStudio = lazy(() => import("./screens/ResumeStudio"));
+const DocumentVault = lazy(() => import("./screens/DocumentVault"));
+const UpdateSettings = lazy(() => import("./screens/UpdateSettings"));
+const Settings = lazy(() => import("./screens/Settings"));
+const Feedback = lazy(() => import("./screens/Feedback"));
 
 function AboutPage() {
   return (
@@ -31,7 +32,7 @@ function AboutPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-text-primary">CareerForge AI</h1>
-          <p className="text-sm text-text-tertiary">Version 0.5.0-alpha · Build 1</p>
+          <p className="text-sm text-text-tertiary">Version 0.1.1</p>
         </div>
       </div>
       <div className="card space-y-3">
@@ -96,20 +97,27 @@ function App() {
     let cancelled = false;
 
     const poll = async () => {
+      let tauriCore: typeof import("@tauri-apps/api/core") | null = null;
+      try {
+        tauriCore = await import("@tauri-apps/api/core");
+      } catch {
+        // Tauri not available (web mode)
+      }
+
       while (!cancelled && attempts < maxAttempts) {
         attempts++;
 
         try {
           // Call the Tauri health command first - this is more reliable in production
-          const { invoke } = await import("@tauri-apps/api/core");
-          const health = await invoke<string>("get_health");
+          if (!tauriCore) throw new Error("Tauri not available");
+          const health = await tauriCore.invoke<string>("get_health");
           const healthData = JSON.parse(health);
           if (healthData?.status === "ok" || healthData?.status === "healthy") {
             setBackendReady(true);
             return;
           }
-        } catch (err: any) {
-          // Tauri command failed, try direct API health check
+        } catch {
+          // Tauri command failed or not available, try direct API health check
           try {
             const resp = await fetch("http://127.0.0.1:8000/api/v1/health");
             if (resp.ok) {
@@ -129,8 +137,9 @@ function App() {
           backendRequested = true;
           setBackendMessage("Starting backend...");
           try {
-            const { invoke } = await import("@tauri-apps/api/core");
-            await invoke("start_backend");
+            if (tauriCore) {
+              await tauriCore.invoke("start_backend");
+            }
           } catch {
             // start_backend failed — keep polling, maybe it's already running
           }
@@ -144,8 +153,9 @@ function App() {
         // Read the startup log to show the user what failed
         let logDetail = "";
         try {
-          const { invoke } = await import("@tauri-apps/api/core");
-          logDetail = await invoke<string>("get_backend_log").catch(() => "");
+          if (tauriCore) {
+            logDetail = await tauriCore.invoke<string>("get_backend_log").catch(() => "");
+          }
         } catch {
           // invoke not available (web mode)
         }
@@ -171,30 +181,31 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <Routes>
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="education" element={<Education />} />
-          <Route path="experience" element={<Experience />} />
-          <Route path="projects" element={<Projects />} />
-          <Route path="skills" element={<Skills />} />
-          <Route path="certificates" element={<Certificates />} />
-          <Route path="achievements" element={<Achievements />} />
-          <Route path="languages" element={<Languages />} />
-          <Route path="publications" element={<Publications />} />
-          <Route path="awards" element={<Awards />} />
-          <Route path="links" element={<Links />} />
-          <Route path="resume" element={<ResumeGenerator />} />
-          <Route path="ats" element={<ATSDashboard />} />
-          <Route path="documents" element={<div className="p-8 text-text-secondary">Document Vault — coming soon</div>} />
-          <Route path="settings/updates" element={<UpdateSettings />} />
-          <Route path="settings" element={<div className="p-8 text-text-secondary">Settings — coming soon</div>} />
-          <Route path="help" element={<Feedback />} />
-          <Route path="feedback" element={<Feedback />} />
-          <Route path="about" element={<AboutPage />} />
-        </Route>
-      </Routes>
+      <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-600 border-t-transparent" /></div>}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="education" element={<Education />} />
+            <Route path="experience" element={<Experience />} />
+            <Route path="projects" element={<Projects />} />
+            <Route path="skills" element={<Skills />} />
+            <Route path="certificates" element={<Certificates />} />
+            <Route path="achievements" element={<Achievements />} />
+            <Route path="languages" element={<Languages />} />
+            <Route path="publications" element={<Publications />} />
+            <Route path="awards" element={<Awards />} />
+            <Route path="links" element={<Links />} />
+            <Route path="resume" element={<ResumeStudio />} />
+            <Route path="documents" element={<DocumentVault />} />
+            <Route path="settings/updates" element={<UpdateSettings />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="help" element={<Feedback />} />
+            <Route path="feedback" element={<Feedback />} />
+            <Route path="about" element={<AboutPage />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </ErrorBoundary>
   );
 }

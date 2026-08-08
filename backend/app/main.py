@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config.settings import settings
 from app.config.persistence import apply_config_to_settings, register_providers_from_config
@@ -21,6 +22,7 @@ from app.routers import (
     diagnostics,
     documents,
     jobs,
+    keywords,
     knowledge,
     profile,
     resume_generator,
@@ -56,9 +58,23 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
+# ── Security Headers ──────────────────────────────────────────
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers to every response."""
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        return response
+
+
 app = FastAPI(
     title="CareerForge AI",
-    version="0.1.0",
+    version="0.1.1",
     description="AI-powered desktop career intelligence platform",
     lifespan=lifespan,
 )
@@ -71,6 +87,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 # Routers
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
@@ -88,11 +106,12 @@ app.include_router(ats_intelligence.router, prefix="/api/v1/ats-intelligence", t
 app.include_router(updates.router, prefix="/api/v1/updates", tags=["updates"])
 app.include_router(backup.router, prefix="/api/v1/backup", tags=["backup"])
 app.include_router(diagnostics.router, prefix="/api/v1/diagnostics", tags=["diagnostics"])
+app.include_router(keywords.router, prefix="/api/v1/keywords", tags=["keywords"])
 
 
 @app.get("/")
 async def root():
-    return {"service": "CareerForge AI", "version": "0.1.0", "status": "running"}
+    return {"service": "CareerForge AI", "version": "0.1.1", "status": "running"}
 
 
 if __name__ == "__main__":

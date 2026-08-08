@@ -96,6 +96,7 @@ class CanonicalResume:
         knowledge_score: float = 0.0,
         similarity_score: float = 0.0,
         prompt_version: str = "",
+        provenance_highlights: list[str] | None = None,
     ) -> None:
         """Add a bullet point with full provenance tracking."""
         section = self._find_section(section_name)
@@ -114,6 +115,7 @@ class CanonicalResume:
                 "similarity_score": similarity_score,
                 "generation_timestamp": datetime.now(UTC).isoformat(),
                 "prompt_version": prompt_version,
+                "provenance_highlights": provenance_highlights or [],
             },
         }
         section.items.append(bullet)

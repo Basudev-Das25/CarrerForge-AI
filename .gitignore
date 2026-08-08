@@ -26,6 +26,7 @@ target/
 src-tauri/target/
 src-tauri/binaries/
 .backend-sidecar-build/
+src-tauri/tauri-updater-private.key
 
 # ===========================
 # Environment & Secrets
