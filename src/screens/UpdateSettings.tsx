@@ -293,7 +293,7 @@ export default function UpdateSettingsScreen() {
           <div className="border border-border rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="badge badge-success text-xs">Latest</span>
-              <span className="font-semibold text-text-primary">v0.1.0</span>
+              <span className="font-semibold text-text-primary">v0.1.1</span>
               <span className="text-xs text-text-tertiary">July 22, 2026</span>
             </div>
             <ul className="text-sm text-text-secondary space-y-1">

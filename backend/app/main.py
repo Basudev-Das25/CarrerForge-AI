@@ -114,7 +114,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app = FastAPI(
     title="CareerForge AI",
-    version="0.1.0",
+    version="0.1.1",
     description="AI-powered desktop career intelligence platform",
     lifespan=lifespan,
 )
@@ -151,7 +151,7 @@ app.include_router(keywords.router, prefix="/api/v1/keywords", tags=["keywords"]
 
 @app.get("/")
 async def root():
-    return {"service": "CareerForge AI", "version": "0.1.0", "status": "running"}
+    return {"service": "CareerForge AI", "version": "0.1.1", "status": "running"}
 
 
 if __name__ == "__main__":

@@ -55,7 +55,7 @@ class DiagnosticsService:
     def get_system_info(self) -> SystemInfo:
         """Collect system information."""
         return SystemInfo(
-            version="0.5.0-alpha",
+            version="0.1.1",
             build_number=1,
             os_name=platform.system(),
             os_version=platform.version(),
@@ -64,7 +64,7 @@ class DiagnosticsService:
             python_version=sys.version.split()[0],
             platform=sys.platform,
             architecture=platform.machine(),
-            backend_version="0.1.0",
+            backend_version="0.1.1",
         )
 
     def get_full_diagnostics(self) -> dict[str, Any]:

@@ -32,7 +32,7 @@ function AboutPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-text-primary">CareerForge AI</h1>
-          <p className="text-sm text-text-tertiary">Version 0.5.0-alpha · Build 1</p>
+          <p className="text-sm text-text-tertiary">Version 0.1.1</p>
         </div>
       </div>
       <div className="card space-y-3">

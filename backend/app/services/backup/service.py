@@ -65,7 +65,7 @@ class BackupService:
         meta = BackupMetadata(
             id=backup_id,
             timestamp=datetime.now(timezone.utc).isoformat(),
-            version="0.5.0-alpha",
+            version="0.1.1",
             description=description or "Automatic backup",
         )
 

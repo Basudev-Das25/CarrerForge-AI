@@ -116,7 +116,7 @@ export default function Settings() {
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
 
   // ── About / Version ───────────────────────────────────────
-  const [appVersion, setAppVersion] = useState("0.1.0");
+  const [appVersion, setAppVersion] = useState("0.1.1");
   const [exportingDiag, setExportingDiag] = useState(false);
 
   // ── Saving state for each section ─────────────────────────
