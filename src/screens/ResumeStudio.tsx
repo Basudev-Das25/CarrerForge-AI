@@ -75,9 +75,21 @@ interface ATSReport {
   missing_sections: string[];
 }
 
-// ── Helper: simple keyword extraction ────────────────────────
+// ── Helper: keyword extraction ───────────────────────────────
 
-function extractKeywords(text: string): string[] {
+// Prefer the backend extractor (domain-agnostic + grounded), falling back
+// to a local JS extractor when the backend is unavailable.
+async function fetchKeywords(text: string): Promise<string[]> {
+  try {
+    const result = await api.extractKeywords(text);
+    const kws = result?.all_keywords || [];
+    if (kws.length > 0) return kws;
+  } catch { /* backend unavailable — fall back to local */ }
+  return extractKeywordsLocal(text);
+}
+
+// Simple local fallback (used only if the backend keyword endpoint fails).
+function extractKeywordsLocal(text: string): string[] {
   const words = text.toLowerCase().split(/[\s,;(){}[\]]+/);
   const stopWords = new Set([
     "the","and","for","with","this","that","from","will","have","are","was",
@@ -234,7 +246,7 @@ export default function ResumeStudio() {
     if (!jd.trim()) { toast.error("Paste a job description first"); return; }
 
     // ── Phase 1: Blueprint (auto-advance to Step 2) ──
-    setJdKeywords(extractKeywords(jd));
+    setJdKeywords(await fetchKeywords(jd));
     setBlueprintLoading(true);
     goToStep("blueprint");
 
