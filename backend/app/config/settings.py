@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # App
     app_name: str = "CareerForge AI"
-    app_version: str = "0.1.0"
+    app_version: str = "0.1.1"
     debug: bool = Field(default=True, alias="APP_DEBUG")
     data_dir: str = Field(default="~/.careerforge", alias="DATA_DIR")
 

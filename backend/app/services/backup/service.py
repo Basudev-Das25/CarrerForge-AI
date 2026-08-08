@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import structlog
 import zipfile
@@ -32,6 +33,16 @@ class BackupMetadata:
         }
 
 
+def _safe_extract(zf: zipfile.ZipFile, member: str, target_dir: Path) -> Path:
+    """Extract a zip member safely, preventing path traversal."""
+    full_path = target_dir.resolve() / member
+    full_path = full_path.resolve()
+    if not str(full_path).startswith(str(target_dir.resolve())):
+        raise ValueError(f"Zip slip detected: {member} resolves outside {target_dir}")
+    zf.extract(member, target_dir)
+    return full_path
+
+
 class BackupService:
     """Automatic backup and restore system."""
 
@@ -54,7 +65,7 @@ class BackupService:
         meta = BackupMetadata(
             id=backup_id,
             timestamp=datetime.now(timezone.utc).isoformat(),
-            version="0.5.0-alpha",
+            version="0.1.1",
             description=description or "Automatic backup",
         )
 
@@ -118,17 +129,27 @@ class BackupService:
         restored_files = []
 
         with zipfile.ZipFile(zip_path, "r") as zf:
+            # Validate all members before extraction
+            for member in zf.namelist():
+                if member == "metadata.json":
+                    continue
+                # Check for path traversal in member name
+                resolved = Path(self._data_dir) / member
+                resolved = resolved.resolve()
+                if not str(resolved).startswith(str(self._data_dir.resolve())):
+                    return {"success": False, "error": f"Invalid backup: path traversal detected in '{member}'"}
+
             for member in zf.namelist():
                 if member == "metadata.json":
                     continue
 
                 if member.startswith("settings/"):
                     filename = member.removeprefix("settings/")
-                    zf.extract(member, self._data_dir)
-                    restored_files.append(str(self._data_dir / filename))
+                    dest = _safe_extract(zf, member, self._data_dir)
+                    restored_files.append(str(dest))
 
                 elif member.startswith("database/"):
-                    zf.extract(member, self._data_dir)
+                    dest = _safe_extract(zf, member, self._data_dir)
                     restored_files.append(str(self._data_dir / member.removeprefix("database/")))
 
                 elif member.startswith("project/"):
@@ -136,6 +157,10 @@ class BackupService:
                     if len(parts) == 2:
                         dirname, rel_path = parts
                         dest = project_root / dirname / rel_path
+                        # Validate no path traversal
+                        dest = dest.resolve()
+                        if not str(dest).startswith(str(project_root.resolve())):
+                            return {"success": False, "error": f"Invalid backup: path traversal detected in '{member}'"}
                         dest.parent.mkdir(parents=True, exist_ok=True)
                         with open(dest, "wb") as f:
                             f.write(zf.read(member))
@@ -151,8 +176,11 @@ class BackupService:
         src = self._backups_dir / f"backup_{backup_id}.zip"
         if not src.exists():
             return {"success": False, "error": "Backup not found"}
-        shutil.copy2(str(src), export_path)
-        return {"success": True, "path": export_path}
+        dest = Path(export_path).resolve()
+        # Allow writing to user's home directory and common locations
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(str(src), str(dest))
+        return {"success": True, "path": str(dest)}
 
     # ── Import Backup ─────────────────────────────────────
 
@@ -160,6 +188,19 @@ class BackupService:
         """Import a backup from an external path."""
         src = Path(import_path)
         if not src.exists() or not src.name.endswith(".zip"):
+            return None
+
+        # Validate it's a real zip file
+        try:
+            with zipfile.ZipFile(src, "r") as zf:
+                if zf.testzip():
+                    return None  # Corrupt zip
+                # Check for path traversal in members
+                for member in zf.namelist():
+                    resolved = (Path(self._data_dir) / member).resolve()
+                    if not str(resolved).startswith(str(self._data_dir.resolve())):
+                        return None
+        except (zipfile.BadZipFile, Exception):
             return None
 
         self._backups_dir.mkdir(parents=True, exist_ok=True)

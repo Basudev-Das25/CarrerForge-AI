@@ -357,14 +357,22 @@ class TemplateEngine:
         """
         import subprocess
         import shutil
-        
-        # Try Python typst library first (bundled, no system dependency)
+
+        # Try Python typst library first (bundled, no system dependency).
+        # If it's not installed OR compilation fails at runtime (e.g. on
+        # Windows the native extension can't enumerate fonts), fall back to
+        # the system-installed typst binary.
         try:
             import typst
-            return TemplateEngine._compile_with_library(typst_source, output_dir)
+            result = TemplateEngine._compile_with_library(typst_source, output_dir)
+            if result.success:
+                return result
+            logger.warning("typst.library_failed", error=result.errors[0].get("message") if result.errors else "unknown")
         except ImportError:
-            pass
-        
+            logger.debug("typst.library_not_installed")
+        except Exception as exc:
+            logger.warning("typst.library_error", error=str(exc))
+
         # Fall back to system binary
         typst_cmd = shutil.which("typst")
         if not typst_cmd:
@@ -373,7 +381,7 @@ class TemplateEngine:
                 typst_source=typst_source,
                 errors=[{"message": "Typst compiler not installed. Install the 'typst' pip package or install Typst from https://typst.app"}],
             )
-        
+
         return TemplateEngine._compile_with_binary(typst_source, output_dir, typst_cmd)
 
     @staticmethod
@@ -465,6 +473,7 @@ class TemplateEngine:
     @staticmethod
     def _compile_with_binary(typst_source: str, output_dir: str | None, typst_cmd: str) -> CompileResult:
         """Compile Typst source using the system-installed typst binary."""
+        import shutil
         import subprocess
 
         with tempfile.TemporaryDirectory(prefix="careerforge_") as tmpdir:
@@ -540,19 +549,13 @@ class TemplateEngine:
 
 
 def _esc(text: str) -> str:
-    """Escape text for safe inclusion in Typst source."""
-    replacements = {
-        "\\": "\\\\",
-        "#": "\\#",
-        "$": "\\$",
-        "%": "\\%",
-        "&": "\\&",
-        "_": "\\_",
-        "{": "\\{",
-        "}": "\\}",
-        "[": "\\[",
-        "]": "\\]",
-    }
-    for old, new in replacements.items():
-        text = text.replace(old, new)
-    return text
+    """Escape text as a Typst string literal, wrapped in double quotes.
+
+    Inside Typst string literals ("...") only backslash and double-quote
+    need escaping — markup characters like #, $, %, &, [, ], {, } are
+    literal. The result is always quoted so it can be used directly as
+    a function argument (e.g. #header("John Smith", ...)).
+    """
+    text = text.replace("\\", "\\\\")
+    text = text.replace('"', '\\"')
+    return f'"{text}"'

@@ -15,8 +15,8 @@ const Languages = lazy(() => import("./screens/Languages"));
 const Publications = lazy(() => import("./screens/Publications"));
 const Awards = lazy(() => import("./screens/Awards"));
 const Links = lazy(() => import("./screens/Links"));
-const ResumeGenerator = lazy(() => import("./screens/ResumeGenerator"));
-const ATSDashboard = lazy(() => import("./screens/ATSDashboard"));
+const ResumeStudio = lazy(() => import("./screens/ResumeStudio"));
+const DocumentVault = lazy(() => import("./screens/DocumentVault"));
 const UpdateSettings = lazy(() => import("./screens/UpdateSettings"));
 const Settings = lazy(() => import("./screens/Settings"));
 const Feedback = lazy(() => import("./screens/Feedback"));
@@ -32,7 +32,7 @@ function AboutPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-text-primary">CareerForge AI</h1>
-          <p className="text-sm text-text-tertiary">Version 0.5.0-alpha · Build 1</p>
+          <p className="text-sm text-text-tertiary">Version 0.1.1</p>
         </div>
       </div>
       <div className="card space-y-3">
@@ -116,7 +116,7 @@ function App() {
             setBackendReady(true);
             return;
           }
-        } catch (err: any) {
+        } catch {
           // Tauri command failed or not available, try direct API health check
           try {
             const resp = await fetch("http://127.0.0.1:8000/api/v1/health");
@@ -196,9 +196,8 @@ function App() {
             <Route path="publications" element={<Publications />} />
             <Route path="awards" element={<Awards />} />
             <Route path="links" element={<Links />} />
-            <Route path="resume" element={<ResumeGenerator />} />
-            <Route path="ats" element={<ATSDashboard />} />
-            <Route path="documents" element={<div className="p-8 text-text-secondary">Document Vault — coming soon</div>} />
+            <Route path="resume" element={<ResumeStudio />} />
+            <Route path="documents" element={<DocumentVault />} />
             <Route path="settings/updates" element={<UpdateSettings />} />
             <Route path="settings" element={<Settings />} />
             <Route path="help" element={<Feedback />} />

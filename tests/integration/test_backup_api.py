@@ -54,7 +54,7 @@ async def test_diagnostics_system_info(client):
     assert "system" in data
     assert "providers" in data
     assert "templates" in data
-    assert "data_dir" in data
+    assert "enabled_features" in data
 
 
 @pytest.mark.asyncio

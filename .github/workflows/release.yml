@@ -1,0 +1,107 @@
+name: Release
+
+# Builds the Tauri desktop app for macOS/Linux/Windows and publishes a
+# GitHub Release with updater artifacts (installer + .sig + latest.json).
+#
+# Trigger: push a version tag, e.g.
+#   git tag v0.1.1 && git push origin v0.1.1
+#
+# Required repository secrets:
+#   TAURI_SIGNING_PRIVATE_KEY = base64 Ed25519 seed (see src-tauri/tauri-updater-private.key)
+#
+# TAURI_SIGNING_PRIVATE_KEY_PASSWORD is OPTIONAL and only needed if the
+# key has a password. The current key has NO password — leave the secret
+# UNSET (GitHub rejects empty secret values; the workflow handles an
+# unset secret as "no password").
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'   # Apple Silicon
+            args: '--target aarch64-apple-darwin'
+            triple: aarch64-apple-darwin
+          - platform: 'macos-latest'   # Intel
+            args: '--target x86_64-apple-darwin'
+            triple: x86_64-apple-darwin
+          - platform: 'ubuntu-22.04'
+            args: ''
+            triple: x86_64-unknown-linux-gnu
+          - platform: 'windows-latest'
+            args: ''
+            triple: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Frontend toolchain ─────────────────────────────
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      # ── Rust toolchain ─────────────────────────────────
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      # ── Linux system deps ──────────────────────────────
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+
+      # ── Python for the backend sidecar ─────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build backend sidecar (PyInstaller)
+        working-directory: backend
+        run: |
+          pyinstaller --clean --noconfirm careerforge-backend.spec
+          mkdir -p ../src-tauri/binaries
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            mv dist/careerforge-backend.exe ../src-tauri/binaries/careerforge-backend-${{ matrix.triple }}.exe
+          else
+            mv dist/careerforge-backend ../src-tauri/binaries/careerforge-backend-${{ matrix.triple }}
+          fi
+
+      # ── Build + sign + publish ─────────────────────────
+      - uses: tauri-apps/tauri-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'CareerForge AI ${{ github.ref_name }}'
+          releaseBody: 'See the assets below to download and install this version.'
+          releaseDraft: true
+          prerelease: false
+          uploadUpdaterJson: true
+          uploadUpdaterSignatures: true
+          args: ${{ matrix.args }}

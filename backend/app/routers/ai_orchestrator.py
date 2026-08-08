@@ -55,7 +55,7 @@ async def chat(request: ChatRequest):
             "cached": response.cached,
         }
     except Exception as e:
-        raise HTTPException(status_code=502, detail=str(e))
+        raise HTTPException(status_code=502, detail="AI chat error")
 
 
 # ── Health & Stats ──────────────────────────────────────────

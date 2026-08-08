@@ -113,6 +113,8 @@ class ResumePipeline:
                     content=(
                         "You are an expert resume strategist for CareerForge AI. "
                         "Given a job profile and candidate evidence, plan the optimal resume structure. "
+                        "Extract keywords from the job profile and explicitly plan how to incorporate "
+                        "them into each section. "
                         "Return a JSON object with: "
                         "target_role, target_industry, resume_strategy (technical/executive/career-change), "
                         "summary_focus, tone (professional/casual/academic), "
@@ -235,19 +237,28 @@ class ResumePipeline:
             for ev in evidence_bundle.experience:
                 p = ev.properties
                 evidence_items.append({
-                    "text": f"{p.get('title', '')} at {p.get('company', '')} ({p.get('start_date', '')} - {p.get('end_date', 'Present')}): {p.get('description', '')}",
-                    "highlights": p.get("highlights", []),
-                    "skills": p.get("skills_used", []),
+                    "type": "experience",
+                    "source_id": ev.entity_id,
+                    "role": p.get("title", ""),
+                    "company": p.get("company", ""),
+                    "date_range": f"{p.get('start_date', '')} - {p.get('end_date', 'Present')}",
+                    "highlights": p.get("highlights", []),  # These are the user's actual bullets
+                    "skills_used": p.get("skills_used", []),
                     "confidence": ev.confidence_score,
+                    "constraint": "ONLY use these highlights and skills. Do not invent.",
                 })
         elif section_name.lower() == "projects":
             for ev in evidence_bundle.projects:
                 p = ev.properties
                 evidence_items.append({
-                    "text": f"{p.get('name', '')}: {p.get('description', '')}",
-                    "tech": p.get("tech_stack", []),
+                    "type": "project",
+                    "source_id": ev.entity_id,
+                    "name": p.get("name", ""),
+                    "description": p.get("description", ""),
+                    "tech_stack": p.get("tech_stack", []),
                     "highlights": p.get("highlights", []),
                     "confidence": ev.confidence_score,
+                    "constraint": "ONLY use these highlights and tech. Do not invent.",
                 })
 
         evidence_str = str(evidence_items)[:3000]
@@ -258,10 +269,17 @@ class ResumePipeline:
                 ChatMessage(
                     role=MessageRole.SYSTEM,
                     content=(
-                        "You are an expert resume writer. Write the resume section below. "
-                        "Rules: Use strong action verbs, quantify achievements, "
-                        "incorporate keywords naturally, do NOT fabricate. "
-                        "Return structured text with clear bullet points."
+                        "You are a resume FACTORY, not a resume WRITER. "
+                        "Your ONLY job is to convert the provided EVIDENCE into bullet points. "
+                        "CRITICAL RULES: "
+                        "1. Use ONLY the evidence provided below. Do not add any technologies, "
+                        "metrics, team sizes, or accomplishments not present in the evidence. "
+                        "2. Each bullet MUST be directly traceable to a specific piece of evidence. "
+                        "3. If the evidence is empty or insufficient for this section, write "
+                        "'Insufficient evidence — add your experience manually.' "
+                        "4. Use strong action verbs FROM the evidence highlights. "
+                        "5. Incorporate the provided keywords naturally where they fit. "
+                        "6. Return each bullet point on a new line starting with '•'."
                     ),
                 ),
                 ChatMessage(
@@ -299,7 +317,7 @@ class ResumePipeline:
             resume.add_bullet(
                 section_name=section_name,
                 text=text,
-                evidence_source="ai_generated",
+                evidence_source=f"{section_name.lower()}_ai",
                 prompt_version="1.0",
             )
 

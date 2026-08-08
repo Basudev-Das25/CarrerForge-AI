@@ -112,7 +112,7 @@ async def optimize_resume(request: OptimizeRequest):
             "improvement": final_report.overall_score - initial_report.overall_score,
         }
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"AI optimization failed: {e}")
+        raise HTTPException(status_code=502, detail="AI optimization failed")
 
 
 # ── Comparison ───────────────────────────────────────────
