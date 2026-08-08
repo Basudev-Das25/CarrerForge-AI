@@ -83,7 +83,7 @@ jobs:
         working-directory: backend
         shell: bash
         run: |
-          python -m PyInstaller --clean --noconfirm --noupx careerforge-backend.spec
+          python -m PyInstaller --clean --noconfirm careerforge-backend.spec
           mkdir -p ../src-tauri/binaries
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             mv dist/careerforge-backend.exe "../src-tauri/binaries/careerforge-backend-${{ matrix.triple }}.exe"
