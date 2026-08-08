@@ -81,14 +81,16 @@ jobs:
 
       - name: Build backend sidecar (PyInstaller)
         working-directory: backend
+        shell: bash
         run: |
-          pyinstaller --clean --noconfirm careerforge-backend.spec
+          python -m PyInstaller --clean --noconfirm --noupx careerforge-backend.spec
           mkdir -p ../src-tauri/binaries
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            mv dist/careerforge-backend.exe ../src-tauri/binaries/careerforge-backend-${{ matrix.triple }}.exe
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            mv dist/careerforge-backend.exe "../src-tauri/binaries/careerforge-backend-${{ matrix.triple }}.exe"
           else
-            mv dist/careerforge-backend ../src-tauri/binaries/careerforge-backend-${{ matrix.triple }}
+            mv dist/careerforge-backend "../src-tauri/binaries/careerforge-backend-${{ matrix.triple }}"
           fi
+          ls -la ../src-tauri/binaries
 
       # ── Build + sign + publish ─────────────────────────
       - uses: tauri-apps/tauri-action@v1
