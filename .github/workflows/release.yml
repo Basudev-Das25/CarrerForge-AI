@@ -7,8 +7,12 @@ name: Release
 #   git tag v0.1.1 && git push origin v0.1.1
 #
 # Required repository secrets:
-#   TAURI_SIGNING_PRIVATE_KEY          = base64 Ed25519 seed (see src-tauri/tauri-updater-private.key)
-#   TAURI_SIGNING_PRIVATE_KEY_PASSWORD = password for the key (empty string if none)
+#   TAURI_SIGNING_PRIVATE_KEY = base64 Ed25519 seed (see src-tauri/tauri-updater-private.key)
+#
+# TAURI_SIGNING_PRIVATE_KEY_PASSWORD is OPTIONAL and only needed if the
+# key has a password. The current key has NO password — leave the secret
+# UNSET (GitHub rejects empty secret values; the workflow handles an
+# unset secret as "no password").
 
 on:
   push:
