@@ -42,9 +42,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIG1lc3NhZ2UgdmVyaWZpY2F0aW9uIGtleQ==",
+      "pubkey": "MCowBQYDK2VwAyEAwuFySWVcbowdpdUl98NL7Kc1pjA+szeuplso0toks+U=",
       "endpoints": [
-        "https://github.com/Basudev-Das/CareerForge-AI/releases/latest/download/latest.json"
+        "https://github.com/Basudev-Das25/CarrerForge-AI/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "both"
