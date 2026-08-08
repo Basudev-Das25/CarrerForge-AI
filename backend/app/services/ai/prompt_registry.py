@@ -6,6 +6,7 @@ on first access with caching. Supports variables, overrides, and validation.
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,21 @@ import yaml
 
 logger = structlog.get_logger("careerforge.ai.prompts")
 
-PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "prompts"
+
+def _prompts_dir() -> Path:
+    """Resolve the prompts directory, handling PyInstaller frozen mode.
+
+    In dev the prompts live at backend/prompts. When bundled with
+    PyInstaller (onefile), data files are extracted to sys._MEIPASS and
+    the prompts land at sys._MEIPASS/prompts.
+    """
+    if getattr(sys, "frozen", False):
+        base = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+        return base / "prompts"
+    return Path(__file__).parent.parent.parent.parent / "prompts"
+
+
+PROMPTS_DIR = _prompts_dir()
 
 _cache: dict[str, dict] = {}
 

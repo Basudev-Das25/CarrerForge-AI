@@ -4,7 +4,7 @@
 from PyInstaller.utils.hooks import collect_submodules, collect_all
 
 datas = [
-    (SPECPATH + '/templates', 'templates'),
+    (SPECPATH + '/../templates', 'templates'),
     (SPECPATH + '/prompts', 'prompts'),
 ]
 binaries = []

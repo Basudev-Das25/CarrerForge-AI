@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import structlog
+import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -15,7 +16,21 @@ from typing import Any
 
 logger = structlog.get_logger("careerforge.templates")
 
-TEMPLATES_DIR = Path(__file__).resolve().parent.parent.parent.parent.parent / "templates"
+
+def _templates_dir() -> Path:
+    """Resolve the templates directory, handling PyInstaller frozen mode.
+
+    In dev the templates live at repo-root/templates. When bundled with
+    PyInstaller (onefile), data files are extracted to sys._MEIPASS and
+    the templates land at sys._MEIPASS/templates.
+    """
+    if getattr(sys, "frozen", False):
+        base = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+        return base / "templates"
+    return Path(__file__).resolve().parent.parent.parent.parent.parent / "templates"
+
+
+TEMPLATES_DIR = _templates_dir()
 
 
 @dataclass
